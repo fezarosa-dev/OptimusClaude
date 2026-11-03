@@ -2,13 +2,18 @@
 
 **Um método para desenvolver software com o Claude Code: a sessão principal orquestra, subagentes fazem, e cada mudança é testada, revisada e registrada antes de seguir.**
 
-![Licença: a definir](https://img.shields.io/badge/licen%C3%A7a-a%20definir-lightgrey)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/feito%20para-Claude%20Code-orange)
 ![Linguagens](https://img.shields.io/badge/scripts-Python%20%C2%B7%20Bash%20%C2%B7%20TypeScript-blue)
 
 Você clona, roda um script e ganha: regras globais para o Claude, agentes e skills prontos, workflows de revisão, um
 painel da sessão no navegador (com acesso pelo celular) e um **projeto modelo** com a bateria de testes, o CI e os
 registros de garantia já montados. Funciona para qualquer linguagem.
+
+![O painel da sessão: progresso das tarefas, limites de uso de 5 h e da semana, e perguntas abertas](docs/img/painel.png)
+
+<sub>O painel da sessão com um projeto de exemplo: cada tarefa com o seu estado e progresso, os limites de uso do Claude
+e as perguntas esperando resposta (que também dá para responder pelo celular).</sub>
 
 Nasceu do uso diário num sistema de produção com vários agentes de IA, banco, painel web e CI, e foi generalizado.
 
@@ -200,6 +205,7 @@ Detalhe: [docs/agentes-e-modelos.md](docs/agentes-e-modelos.md).
 ```
 OptimusClaude/
 ├── install.sh          instala tudo (claude/ vai para ~/.claude, painel/ para ~/painel-da-sessao) e checa dependências
+├── install.ps1         o mesmo no Windows nativo, menos o painel (que precisa de Linux; no WSL use o install.sh)
 ├── claude/             vai para ~/.claude
 │   ├── CLAUDE.md       regras globais: o método, escrito como instrução ao Claude
 │   ├── RTK.md          instruções do rtk, importadas pelo CLAUDE.md
@@ -252,6 +258,49 @@ cd OptimusClaude
 `--sem-plugins` (pula marketplaces e plugins), `--help`.
 
 Abra uma sessão nova do Claude Code depois de instalar.
+
+### No Windows
+
+Há dois caminhos. A diferença é só o painel da sessão, que lê informações do sistema que só o Linux oferece (`/proc`,
+`ps`, `ip`).
+
+| | Windows nativo (`install.ps1`) | WSL (`install.sh`) |
+|---|---|---|
+| Regras, agentes, skills, workflows, mods | sim | sim |
+| Linha de status (contexto, limites, branch) | sim, a avulsa | sim, a do painel |
+| Painel da sessão e perguntas pelo celular | não | sim |
+| Quando escolher | Você usa o Claude Code direto no Windows e não precisa do painel | Você quer o kit completo |
+
+**Windows nativo.** Abra o PowerShell na pasta do repositório:
+
+```powershell
+git clone <url-do-repositorio> OptimusClaude
+cd OptimusClaude
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -DryRun   # mostra o que faria, sem mudar nada
+powershell -ExecutionPolicy Bypass -File .\install.ps1           # instala
+```
+
+Ele faz o mesmo que o `install.sh`, com três diferenças:
+
+- copia `claude\` para `%USERPROFILE%\.claude` e não instala o painel;
+- se criar o `settings.json`, aponta a linha de status para a avulsa (`~\.claude\statusline\statusline.py`) e chama o
+  Python de `python`;
+- para o que falta, sugere o comando do `winget` (`winget install Git.Git`, `astral-sh.uv`, `GitHub.cli` e outros).
+
+O `-ExecutionPolicy Bypass` libera só esta execução, porque o Windows bloqueia scripts baixados por padrão. Opções:
+`-DryRun`, `-SoChecar` (só confere e não grava nada) e `-SemPlugins`. O Claude Code no Windows usa o Git Bash, que
+vem junto com o Git for Windows.
+
+**WSL (kit completo).** O WSL roda um Linux de verdade dentro do Windows. É o caminho recomendado se você quer o painel.
+
+1. No PowerShell como administrador: `wsl --install` (instala o Ubuntu) e reinicie.
+2. Abra o Ubuntu pelo menu Iniciar e instale o Claude Code e as dependências dentro dele.
+3. Clone o repositório **dentro do Linux** (em `~`, não em `/mnt/c/...`, que é bem mais lento) e rode `./install.sh`.
+4. O painel abre no navegador do Windows em `http://127.0.0.1:8765`: o WSL repassa a porta sozinho.
+
+O instalador nativo foi testado com o PowerShell 7 no Linux (cópia, backup, `-DryRun`, `-SoChecar`, nada mudando
+na segunda rodada e a checagem de plugins igual à do `install.sh`). Ainda não foi testado num Windows de verdade: se
+algo falhar, abra uma issue com a saída.
 
 ### Abrir o painel
 
@@ -385,8 +434,9 @@ sem o painel instalado.
 antes de concluir, depuração) é tratado como obrigatório em [docs/dependencias.md](docs/dependencias.md), e as regras
 do `CLAUDE.md` contam com ele. Não foi testado sem eles.
 
-**Funciona no Windows ou no macOS?** O método foi escrito e usado em Linux. O painel usa `/proc`, `ps` e `ip`, e a
-documentação descreve só Linux. No Windows, a sugestão é o WSL. Windows nativo e macOS não foram testados.
+**Funciona no Windows ou no macOS?** No Windows, sim: o `install.ps1` instala tudo menos o painel, e pelo WSL o
+`install.sh` instala o kit completo (veja [No Windows](#no-windows)). O método foi escrito e usado em Linux; o
+`install.ps1` ainda não foi testado num Windows de verdade, e o macOS não foi testado.
 
 **Funciona com outro modelo que não seja da Anthropic?** Não. O método é feito para o Claude Code e para a escolha entre
 Haiku, Sonnet e Opus. Outros modelos e outras ferramentas não foram testados.
@@ -425,7 +475,7 @@ Issues e pull requests são bem-vindos. Mudança pequena e com teste; o painel t
 
 ## Licença
 
-A definir pelo dono do repositório. Enquanto não houver um arquivo `LICENSE`, vale o direito autoral padrão. As
+[MIT](LICENSE): use, copie, modifique e distribua à vontade, mantendo o aviso de copyright. Sem garantia. As
 ferramentas de terceiros listadas acima têm as licenças delas.
 
 ---
@@ -437,5 +487,6 @@ session only orchestrates; subagents do the work, each with the model and effort
 goes through TDD (the test must fail first), an independent diff review and a fix round, and tests run locally, only on
 what the diff touches. Test, review and fix runs are logged as verifiable records, and nothing reaches `main` without an
 explicit request. The kit includes global rules, agents, skills, workflows, a local session dashboard with phone access,
-and a project template with CI. Install with `./install.sh --dry-run`, then `./install.sh`. Docs and instructions are in
-Brazilian Portuguese. Linux is the tested platform; the license is still to be defined.
+and a project template with CI. Install with `./install.sh --dry-run`, then `./install.sh` (on Windows,
+`install.ps1` installs everything except the dashboard, or use `install.sh` inside WSL for the full kit). Docs and instructions are in
+Brazilian Portuguese. Linux is the tested platform. Licensed under [MIT](LICENSE).
