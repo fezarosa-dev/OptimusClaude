@@ -1,0 +1,13 @@
+# Regras padrão do gitleaks, menos os falsos positivos de propósito:
+# segredos FALSOS nos testes do mascaramento do painel e o regex que os reconhece.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "segredos falsos dos testes do mascaramento do painel"
+paths = [
+  '''^painel/test_(shells|effort|limites)\.py$''',
+  '''^painel/shells\.py$''',
+  # o bytecode desses mesmos testes, gerado ao rodar a suíte
+  '''^painel/__pycache__/test_(shells|effort|limites)\.cpython-\d+\.pyc$''',
+]

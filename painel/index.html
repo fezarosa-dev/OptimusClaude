@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da sessão</title>
+<style>
+:root{color-scheme:dark light;
+  --bg:#070b12;--bg2:#0d1420;--card:#0d1420;--card2:#121b2a;--tx:#e6edf6;--mut:#93a4bc;--bd:#1f2b3d;--bd2:#34506e;
+  --acc:#22d3ee;--acc2:#a78bfa;--ok:#34d399;--and:#fbbf24;--blq:#f87171;--fila:#93a4bc;--ef-low:#7d8a94;--ef-med:#6aa9ff;--ef-alto:#d97757;--g-xalto:linear-gradient(90deg,#ff9a5c,#ff6fa5,#b58cff,#ff9a5c);--g-max:linear-gradient(90deg,#ff6b6b,#fbbf24,#f4e04d,#34d399,#22d3ee,#b58cff,#ff6b6b);--bar:rgba(147,164,188,.16);
+  --grade:rgba(147,164,188,.04);--brilho:none;--glow:0 0 0 1px rgba(34,211,238,.35),0 0 18px -6px rgba(34,211,238,.5);--on-blq:#1a0505;--on-acc:#001a24;--on-and:#1a0f00;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+@media (prefers-color-scheme:light){:root{
+  --bg:#f4f7fb;--bg2:#f4f7fb;--card:#ffffff;--card2:#f1f5fa;--tx:#0b1220;--mut:#475569;--bd:#d5deea;--bd2:#9fb3c8;
+  --acc:#0e7490;--acc2:#6d28d9;--ok:#0b7a4b;--and:#9a5a00;--blq:#b42318;--fila:#475569;--ef-low:#66737d;--ef-med:#1f5fbf;--ef-alto:#b4472a;--g-xalto:linear-gradient(90deg,#c2410c,#be185d,#6d28d9,#c2410c);--g-max:linear-gradient(90deg,#c62828,#b45309,#8a7a00,#0b7a4b,#0e7490,#6d28d9,#c62828);--bar:rgba(20,60,90,.12);
+  --grade:rgba(20,60,90,.045);--glow:0 0 0 1px rgba(8,145,178,.4),0 2px 10px -4px rgba(8,145,178,.4);--on-blq:#fff;--on-acc:#fff;--on-and:#fff}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;
+  background-image:linear-gradient(var(--grade) 1px,transparent 1px),linear-gradient(90deg,var(--grade) 1px,transparent 1px);
+  background-size:32px 32px,32px 32px;background-attachment:fixed}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.mut{color:var(--mut)}.pequeno{font-size:13px}.vazio{color:var(--mut);font-style:italic;padding:8px 0}
+header{position:relative;overflow:hidden;border-bottom:1px solid var(--bd);background:var(--card);padding:14px 20px 12px}
+.marca{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.marca h1{margin:0;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);font-weight:600}
+.marca .mut{font-size:13px}
+.ponto{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);flex:none}
+.ponto.off{background:var(--blq);box-shadow:0 0 10px var(--blq)}
+.kpis{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:14px;margin-top:12px;align-items:stretch}
+.anel{position:relative;width:118px;height:118px}
+.anel svg{width:100%;height:100%;transform:rotate(-90deg)}
+.anel circle{fill:none;stroke-width:8}
+.anel .fundo{stroke:var(--bar)}
+.anel .val{stroke:var(--acc);stroke-linecap:round;transition:stroke-dashoffset .9s var(--ease);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--acc) 55%,transparent))}
+.anel .giro{stroke:var(--acc2);stroke-width:2;stroke-dasharray:6 18;opacity:.5}
+@keyframes gira{to{transform:rotate(360deg)}}
+.anel .meio{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.anel .meio b{font-size:28px;line-height:1}.anel .meio span{font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+.kpi{background:var(--card2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;min-width:0}
+.kpi .rot{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.kpi .val{font-size:24px;font-weight:600;line-height:1.2;margin-top:2px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:13px;color:var(--mut);margin-top:2px}
+.kpi.ambar .val{color:var(--and)}
+.agora{margin-top:10px;font-size:13px;color:var(--mut)}
+.barra-ctrl{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--bd);padding:8px 20px}
+nav{display:flex;flex-wrap:wrap;gap:4px}
+nav button{flex:none;position:relative;border:0;background:none;color:var(--mut);font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;cursor:pointer;min-height:40px;transition:color .15s,background-color .15s}
+nav button:hover{color:var(--tx);background:var(--card2)}
+nav button[aria-selected=true]{color:var(--on-acc);background:var(--acc);font-weight:600}
+.cont{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;background:var(--and);color:var(--on-and);font-size:12px;font-weight:700;line-height:20px;text-align:center}
+.filtros{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.filtros input,.filtros select{font:inherit;font-size:14px;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;min-height:40px}
+.filtros input{flex:1;min-width:200px}
+.filtros select{max-width:100%;text-overflow:ellipsis}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--bd2);border-radius:4px;padding:0 4px;color:var(--mut)}
+main{padding:16px 20px 40px;max-width:1500px;margin:0 auto}
+.vista{display:none;gap:14px;grid-template-columns:minmax(0,1fr)}
+.vista.on{display:grid;animation:entra .28s var(--ease)}
+@keyframes entra{from{opacity:0;transform:translateY(6px)}}
+section{container-type:inline-size;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;min-width:0;overflow-wrap:anywhere;transition:border-color .15s,box-shadow .15s}
+section:hover,section:focus-within{border-color:var(--bd2);box-shadow:var(--glow)}
+.vista>section{position:relative}
+.vista{align-items:start}
+.vista>section.larga{grid-column:1/-1}
+/* grade posicionável (tela larga): 3 colunas, linhas de altura fixa; a posição e o tamanho de cada quadro vêm do JS (grid-column/grid-row inline) */
+@media (min-width:900px){.vista{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .vista.grade{--linha:300px;grid-auto-rows:var(--linha);align-items:stretch;position:relative}
+  .vista.grade>section{overflow-x:hidden;overflow-y:auto}}
+h2{font-size:11px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.16em;color:var(--acc);font-weight:600;display:flex;gap:8px;align-items:center}
+h2::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 6px var(--acc)}
+.lin{padding:8px 0;border-top:1px solid var(--bd)}.lin:first-child{border-top:0}
+.cab{display:flex;gap:8px;align-items:center;min-width:0}
+.cab .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.cab .p{width:42px;text-align:right;color:var(--mut)}
+.barra{height:6px;background:var(--bar);border-radius:3px;overflow:hidden;min-width:60px;width:90px;flex:none}
+.barra>i{display:block;height:100%;background:var(--ok);transition:width .6s var(--ease)}
+.barra.and>i{background:var(--and)}.barra.fila>i{background:var(--fila)}.barra.acc>i{background:var(--acc)}
+.barra.larga{width:auto;flex:1}
+.tag{font-size:12px;border-radius:999px;padding:1px 7px;border:1px solid var(--bd2);color:var(--mut);overflow-wrap:anywhere}
+.tag.concluida{color:var(--ok);border-color:var(--ok)}.tag.andando{color:var(--and);border-color:var(--and)}.tag.bloqueada{color:var(--blq);border-color:var(--blq)}.tag.acc{color:var(--acc);border-color:var(--acc)}
+.tag.ef-low{color:var(--ef-low);border-color:var(--ef-low);opacity:.8}.tag.ef-medium{color:var(--ef-med);border-color:var(--ef-med)}.tag.ef-high{color:var(--ef-alto);border-color:var(--ef-alto)}
+.tag.ef-xhigh,.tag.ef-max{position:relative;border-color:transparent;color:transparent;font-weight:600;background:var(--g) 0 0/200% 100% repeat-x;-webkit-background-clip:text;background-clip:text;animation:efcorre 3s linear infinite}
+.tag.ef-xhigh::before,.tag.ef-max::before{content:"";position:absolute;inset:-1px;border-radius:5px;padding:1px;background:var(--g) 0 0/200% 100% repeat-x;animation:efcorre 3s linear infinite;pointer-events:none;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.tag.ef-xhigh{--g:var(--g-xalto)}.tag.ef-max{--g:var(--g-max);animation-duration:4s}.tag.ef-max::before{animation-duration:4s}
+@keyframes efcorre{to{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.tag.ef-xhigh,.tag.ef-max,.tag.ef-xhigh::before,.tag.ef-max::before{animation:none}}
+.tags{display:inline-flex;gap:6px;flex-wrap:wrap}
+.fala{color:var(--mut);font-size:13px;margin-top:2px;word-break:break-word}
+.det{margin:8px 0 2px;padding:10px;background:var(--card2);border:1px solid var(--bd);border-radius:8px;font-size:13px;word-break:break-word}
+.tarefa{cursor:pointer}
+.erro{background:var(--blq);color:var(--on-blq);padding:6px 20px;font-size:13px}
+.pulso{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 8px var(--ok);animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.35}}
+.rod details{margin-top:2px}
+.rod summary{cursor:pointer;color:var(--acc);font-size:13px;padding:6px 0;min-height:32px}
+.rod pre{margin:2px 0 6px;padding:8px 10px;background:var(--card2);border:1px solid var(--bd);border-radius:8px;font:12px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-height:260px;overflow-x:hidden;overflow-y:auto}
+.rod .cab{flex-wrap:wrap}.rod .cab .t{white-space:normal;flex-basis:55%}
+.grade-num{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.grade-num .kpi .val{font-size:20px}
+table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}
+th,td{overflow-wrap:anywhere}
+pre,code{white-space:pre-wrap;overflow-wrap:anywhere}
+td .barra{max-width:100%;min-width:0}
+table.tab-sess th:first-child,table.tab-sess td:first-child{width:20%}
+.t-wf th:first-child{width:30%}.t-wf th:last-child{width:26%}.t-mod th:first-child{width:38%}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);text-align:left;font-weight:600;padding:6px 6px 6px 0}
+td{padding:7px 6px 7px 0;border-top:1px solid var(--bd);vertical-align:middle}
+td.n,th.n{text-align:right}
+td .barra{margin:4px 0 0 auto;width:70px}
+.base li{margin:3px 0}
+/* workflows na visão geral */
+.wf{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--card2);margin-bottom:12px}
+.wf:last-child{margin-bottom:0}
+.etapas{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;margin:10px 0 6px}
+.et{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--bd);border-radius:8px;padding:4px 10px;font-size:13px;color:var(--mut);min-height:30px;max-width:100%}
+.et .n{font-family:var(--mono);font-size:12px}
+.et.feita{color:var(--ok);border-color:var(--ok)}
+.et.atual{color:var(--acc);border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent);font-weight:600;animation:pulsa 1.6s infinite}
+.et.parada{color:var(--blq);border-color:var(--blq)}
+.et.falta{border-style:dashed}
+.seta{color:var(--mut);font-size:13px}
+@keyframes pulsa{50%{box-shadow:0 0 12px -2px var(--acc)}}
+.wf h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:12px 0 2px;font-weight:600}
+.wf .lin .cab{flex-wrap:wrap}.wf .lin .cab .t{white-space:normal;flex-basis:40%}
+/* perguntas, no molde da pergunta do Claude Code */
+.perg{border:1px solid var(--bd);border-radius:10px;padding:14px 16px;background:var(--card);margin-bottom:14px}
+.perg .chip{display:inline-block;font-size:12px;letter-spacing:.06em;color:var(--acc);border:1px solid var(--bd2);border-radius:999px;padding:2px 10px;margin-right:6px}
+.perg .q{font-size:17px;font-weight:600;margin:10px 0 4px;line-height:1.4}
+.perg .ctx{color:var(--mut);font-size:14px;margin-bottom:8px;white-space:pre-wrap}
+.ops{display:grid;gap:8px;margin:10px 0}
+.op{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;cursor:pointer;background:var(--card2);transition:border-color .15s,background-color .15s,transform .12s var(--ease)}
+.op:hover{border-color:var(--bd2)}
+.op:active{transform:scale(.99)}
+.op:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--card2))}
+.op input{margin-top:4px;flex:none;width:18px;height:18px;accent-color:var(--acc)}
+.op .n{font-family:var(--mono);color:var(--mut);font-size:13px;margin-top:2px;flex:none;width:18px}
+.op b{display:block}.op .d{color:var(--mut);font-size:14px}
+.op .rec{color:var(--ok);font-weight:600;font-size:13px}
+.op textarea,.perg textarea{display:block;width:100%;margin-top:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:16px;resize:vertical}
+.acoes{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button.env{border:0;border-radius:8px;background:var(--acc);color:var(--on-acc);font:inherit;font-weight:700;padding:9px 18px;min-height:44px;cursor:pointer;transition:transform .12s var(--ease),filter .15s}
+button.env:hover{filter:brightness(1.08)}button.env:active{transform:scale(.97)}
+button.env:disabled{opacity:.5;cursor:default;transform:none}
+.msg-envio{flex:1;min-width:0;font-size:14px}.msg-envio.erro-envio{color:var(--blq)}.msg-envio.ok{color:var(--ok)}
+.grupo h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:14px 0 4px}
+mark{background:color-mix(in srgb,var(--acc2) 35%,transparent);color:inherit;border-radius:2px}
+/* posicionar quadros na grade */
+.ordc{margin-left:auto;display:inline-flex;gap:8px;align-items:center;flex:none}
+.alca{display:inline-grid;place-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--bd);color:var(--mut);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font:inherit;font-size:16px;letter-spacing:0;padding:0;background:none}
+.alca:hover{color:var(--acc);border-color:var(--bd2)}
+.alca:focus-visible,.tam button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tam{display:inline-flex}
+.tam button{font:600 11px var(--mono);letter-spacing:0;min-width:28px;height:28px;padding:0 6px;border:1px solid var(--bd);margin-left:-1px;background:none;color:var(--mut);cursor:pointer}
+.tam button:first-child{border-radius:8px 0 0 8px;margin-left:0}.tam button:last-child{border-radius:0 8px 8px 0}
+.tam button:hover{color:var(--acc);border-color:var(--bd2);position:relative}
+.tam button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--on-acc);position:relative}
+.padrao{font:inherit;font-size:12px;letter-spacing:0;text-transform:none;color:var(--mut);background:none;border:1px solid var(--bd);border-radius:8px;cursor:pointer;padding:4px 10px;min-height:32px}
+.padrao:hover{color:var(--acc);border-color:var(--bd2)}
+@media (pointer:coarse){.tam button{min-width:36px;height:36px}}
+/* abaixo de 900 px não há grade: uma coluna, na ordem de leitura, sem alça nem tamanhos */
+@media (max-width:899px){.ordc,.ordbar{display:none}}
+/* quadro de tamanho fixo: o conteúdo rola por dentro, com sombra onde há mais */
+@media (min-width:900px){
+  .vista.grade>section{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent;background:linear-gradient(var(--card) 30%,transparent) 0 0/100% 18px no-repeat local,linear-gradient(transparent,var(--card) 70%) 0 100%/100% 18px no-repeat local,linear-gradient(rgba(34,211,238,.18),transparent) 0 0/100% 8px no-repeat scroll,linear-gradient(transparent,rgba(34,211,238,.18)) 0 100%/100% 8px no-repeat scroll,var(--card)}
+}
+/* grade de apoio e pegada, só enquanto se arrasta */
+.malha{position:absolute;left:0;right:0;top:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:var(--linha,300px);gap:14px;pointer-events:none;z-index:4}
+.celula{border:1px dashed var(--bd);border-radius:10px;opacity:.7}
+.pegada{border:2px dashed var(--acc);border-radius:10px;background:color-mix(in srgb,var(--acc) 10%,transparent);position:relative}
+.pegada b{position:absolute;right:8px;bottom:8px;font:600 12px var(--mono);background:var(--acc);color:var(--on-acc);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* o botão "layout padrão" mora na barra de filtros: não cobre quadro */
+.est.ok{color:var(--acc)}.est.alerta{color:var(--and)}.est.erro{color:var(--blq)}.est{font-size:12px;letter-spacing:.08em;text-transform:uppercase}.ordbar[hidden]{display:none}.ordbar{margin-left:auto}
+section.arrasta{opacity:.45}
+section.arrasta{border-color:var(--acc);box-shadow:var(--glow)}
+body.arrastando{user-select:none;-webkit-user-select:none;cursor:grabbing}
+@media (max-width:760px){.kpis{grid-template-columns:auto repeat(3,minmax(0,1fr))}.kpis .anel{grid-row:span 1}.anel{width:96px;height:96px}.anel .meio b{font-size:22px}}
+@media (max-width:600px){header,.barra-ctrl{padding-left:16px;padding-right:16px}main{padding:12px 16px 32px}.kpis{grid-template-columns:1fr 1fr}.anel{grid-row:span 1}
+  .kpi .val{font-size:20px}.cab{flex-wrap:wrap}.cab .t{flex-basis:45%}.barra{width:56px}.filtros{display:grid;grid-template-columns:1fr 1fr}.filtros select{max-width:none;min-width:0}.filtros select[data-ord]{grid-column:1/-1}.filtros input{grid-column:1/-1;min-width:0}.barra-ctrl{position:static}}
+
+/* limites de uso: faixa normal (<70), atenção (70-89), crítico (90+); o texto diz o estado, a cor só reforça */
+.kpis-lim{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.kpi.lim .est{margin-left:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.kpi.lim.ok .est{color:var(--acc)}.kpi.lim.alerta .est,.kpi.lim.alerta .val{color:var(--and)}.kpi.lim.erro .est,.kpi.lim.erro .val{color:var(--blq)}
+.kpi.lim.alerta{border-color:var(--and)}.kpi.lim.erro{border-color:var(--blq)}
+.kpi.lim .barra{display:block;margin-top:6px;width:auto}
+.barra.med.ok>i{background:var(--acc)}.barra.med.alerta>i{background:var(--and)}.barra.med.erro>i{background:var(--blq)}
+.barra.grande{height:12px;border-radius:6px}
+.lim-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.lim-card{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--card2);min-width:0}
+.lim-card h3{margin:0 0 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.lim-card .grande-pct{font-size:34px;font-weight:600;line-height:1.1}
+.lim-card.alerta .grande-pct,.lim-card.alerta .est{color:var(--and)}.lim-card.erro .grande-pct,.lim-card.erro .est{color:var(--blq)}.lim-card.ok .est{color:var(--acc)}
+.lim-card .est{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-left:8px}
+.lim-card dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:10px 0 0;font-size:13px}
+.lim-card dt{color:var(--mut)}.lim-card dd{margin:0;text-align:right}
+.graf{display:block;width:100%;height:auto;margin-top:10px;overflow:visible}
+.graf .g-fundo{fill:var(--card);stroke:var(--bd)}.graf .g-100{stroke:var(--blq);stroke-dasharray:4 3;stroke-width:1;vector-effect:non-scaling-stroke}.graf .g-50{stroke:var(--bd2);stroke-width:1;opacity:.6;vector-effect:non-scaling-stroke}
+.graf .g-linha{fill:none;stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}.graf .g-ponto{stroke:var(--card);stroke-width:2}
+.graf .ok{stroke:var(--acc);fill:var(--acc)}.graf .alerta{stroke:var(--and);fill:var(--and)}.graf .erro{stroke:var(--blq);fill:var(--blq)}.graf .g-linha{fill:none}.graf .g-ponto{stroke:var(--card)}
+.g-eixo{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:2px}
+.tab-sess .ok{color:var(--ok)}.tab-sess .menos{color:var(--blq)}
+@media (max-width:480px){.kpis-lim{grid-template-columns:1fr}}
+@container (max-width:520px){
+  table.cart thead,table.cart tr:has(>th){display:none}table.cart,table.cart tbody,table.cart tr,table.cart td{display:block;width:auto}
+  table.cart tr{border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:var(--card2)}
+  table.cart td{border:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0;text-align:right;width:auto!important}
+  table.cart td::before{content:attr(data-r);color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.1em;text-align:left;flex:none}
+  table.cart td[data-r=""]::before{display:none}
+  table.cart td:first-child{display:block;text-align:left}table.cart td:first-child::before{display:none}
+  table.cart td .barra{margin:0 0 0 8px;width:70px}}
+@container (max-width:760px){
+  table.tab-sess thead{display:none}table.tab-sess,table.tab-sess tbody,table.tab-sess tr,table.tab-sess td{display:block;width:auto}
+  table.tab-sess tr{border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:var(--card2)}
+  table.tab-sess td{border:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0;text-align:right;width:auto!important}
+  table.tab-sess td::before{content:attr(data-r);color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.1em;text-align:left;flex:none}
+  table.tab-sess td:first-child{display:block;text-align:left}table.tab-sess td:first-child::before{display:none}
+  table.tab-sess td .barra{margin:0 0 0 8px}}
+/* filtros: no celular ficam recolhidos atrás do botão */
+.btn-filtros{display:none;font:inherit;font-size:14px;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;min-height:40px;cursor:pointer;grid-column:1/-1;text-align:left}
+.btn-filtros::after{content:"▾";float:right;transition:transform .15s}.btn-filtros[aria-expanded=true]::after{transform:rotate(180deg)}
+.area-filtros{display:contents}
+.btn-recarregar::after{content:none}.btn-recarregar{display:block;grid-column:auto;text-align:center}.btn-recarregar:disabled{opacity:.6;cursor:default}
+@media (max-width:600px){.btn-filtros{display:block}.area-filtros{display:none}.area-filtros.aberto{display:grid;grid-template-columns:1fr 1fr;gap:8px;grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca"><span class="ponto" id="ponto"></span><h1>Painel da sessão</h1><span class="mut" id="quando">carregando…</span></div>
+  <div class="kpis">
+    <div class="anel" title="tarefas da leva concluídas">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="fundo" cx="60" cy="60" r="52"/><circle class="val" id="anel" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/><circle class="giro" cx="60" cy="60" r="58"/></svg>
+      <div class="meio"><b class="num" id="pct">–</b><span>concluído</span></div>
+    </div>
+    <div class="kpi"><div class="rot">Fase</div><div class="val" id="fase" style="font-size:17px">–</div><div class="sub" id="pctnota"></div></div>
+    <div class="kpi"><div class="rot">Tokens da sessão</div><div class="val num" id="k-tok">–</div><div class="sub" id="k-tok-sub"></div></div>
+    <div class="kpi ambar"><div class="rot">Previsão de conclusão</div><div class="val num" id="k-prev">–</div><div class="sub" id="k-prev-sub"></div></div>
+  </div>
+  <div class="kpis-lim" id="lim-kpis" aria-label="Limites de uso"></div>
+  <div class="agora" id="agora"></div>
+</header>
+<div id="erros"></div>
+<div class="barra-ctrl">
+  <nav role="tablist" id="abas"></nav>
+  <div class="filtros">
+    <input type="search" id="busca" placeholder="Buscar em tudo  ( / )" aria-label="Buscar em tudo">
+    <button type="button" class="btn-filtros" id="btn-filtros" aria-expanded="false" aria-controls="area-filtros">Filtros</button>
+    <div class="area-filtros" id="area-filtros">
+    <select id="f-estado" aria-label="Filtrar por estado"></select>
+    <select id="f-tipo" aria-label="Filtrar por tipo"></select>
+    <select id="f-modelo" aria-label="Filtrar por modelo"></select>
+    <select id="f-effort" aria-label="Filtrar por effort"></select>
+    <select id="f-wf" aria-label="Filtrar por workflow"></select>
+    <span id="ordens" style="display:contents"></span>
+    </div>
+    <button type="button" class="btn-filtros btn-recarregar" id="btn-recarregar" title="Repegar todos os dados do zero">Recarregar</button>
+    <button type="button" class="padrao ordbar" id="ordbar" hidden aria-label="Voltar os quadros desta aba ao layout padrão">layout padrão</button>
+  </div>
+</div>
+<main>
+  <div class="vista" id="v-busca"><section class="larga"><h2>Resultados da busca</h2><div id="resultados"></div></section></div>
+  <div class="vista" id="v-geral">
+    <section class="larga"><h2>Rodando agora</h2><div id="ger-rodando"></div></section>
+    <section><h2>Previsão (estimativa)</h2><div id="previsao"></div></section>
+    <section class="larga"><h2>Workflows</h2><div id="ger-wf"></div><div id="ger-wf-fim" class="rod"></div></section>
+    <section><h2>Tempo</h2><div id="tempo"></div></section>
+    <section><h2>Agentes rodando</h2><div id="ger-agentes"></div></section>
+    <section><h2>Tarefas andando</h2><div id="ger-tarefas"></div></section>
+    <section><h2>Baterias</h2><div id="ger-baterias"></div></section>
+    <section><h2>Entrou na dev</h2><div id="merges"></div></section>
+    <section><h2>Linhas desde a main</h2><div id="ger-linhas"></div></section>
+  </div>
+  <div class="vista" id="v-rodando">
+    <section class="larga"><h2>Rodando agora</h2><div id="rod-resumo"></div><div id="rod-shells" class="rod"></div></section>
+    <section class="larga"><h2>Terminaram há pouco</h2><div id="rod-term" class="rod"></div></section>
+  </div>
+  <div class="vista" id="v-perguntas"><div class="larga" style="grid-column:1/-1"><div id="perg-avisos"></div><div id="perguntas"></div><section><h2>Respondidas</h2><div id="respondidas"></div></section></div></div>
+  <div class="vista" id="v-tarefas"><section class="larga"><h2>Tarefas</h2><div id="tarefas"></div></section></div>
+  <div class="vista" id="v-agentes"><section class="larga"><h2>Agentes</h2><div id="agentes"></div></section><section class="larga"><h2>Workflows</h2><div id="workflows"></div></section></div>
+  <div class="vista" id="v-consumo">
+    <section class="larga"><h2>Limites de uso</h2><div id="con-limites"></div></section>
+    <section class="larga"><h2>Sessões (statusline)</h2><div id="con-sessoes"></div></section>
+    <section class="larga"><h2>Consumo total</h2><div id="con-total"></div></section>
+    <section><h2>Por origem</h2><div id="con-origem"></div></section>
+    <section><h2>Por modelo</h2><div id="con-modelo"></div></section>
+    <section class="larga"><h2>Por workflow</h2><div id="con-wf"></div></section>
+  </div>
+  <div class="vista" id="v-baterias"><section class="larga"><h2>Baterias</h2><div id="baterias"></div></section></div>
+  <div class="vista" id="v-sistema">
+    <section><h2>Worktrees</h2><div id="worktrees"></div></section>
+    <section><h2>Avisos</h2><div id="avisos"></div></section>
+    <section><h2>Ambiente</h2><div id="ambiente"></div></section>
+  </div>
+</main>
+<script src="ordenar.js"></script>
+<script>
+"use strict";
+const ABAS=[["geral","Visão geral"],["rodando","Rodando"],["perguntas","Perguntas"],["tarefas","Tarefas"],["agentes","Agentes"],["consumo","Consumo"],["baterias","Baterias"],["sistema","Sistema"]];
+const ETQ={concluida:"concluída",andando:"andando",fila:"na fila",bloqueada:"bloqueada",desconhecido:"sem estado"};
+const TIPOS={tarefas:"Tarefas",perguntas:"Dúvidas",agentes:"Agentes",workflows:"Workflows",worktrees:"Worktrees",baterias:"Baterias",merges:"Merges",shells:"Shells"};
+let dados=null,aba="geral",busca="",aberta=null,fil={estado:"",tipo:"",modelo:"",effort:"",wf:""};
+/* ordem de cada lista: guardada no navegador e no endereço (#tarefas?ordem=falta-menor) */
+const ABA_ORDENS={geral:["merges"],perguntas:["perguntas"],tarefas:["tarefas"],agentes:["agentes","workflows"],baterias:["baterias"],sistema:["worktrees"]};
+let ord={};
+try{const g=JSON.parse(localStorage.getItem("painel-ordem")||"{}");for(const t in ORDENS)ord[t]=valida(t,g[t]||"")}catch(e){for(const t in ORDENS)ord[t]=""}
+const salvaOrd=()=>{try{localStorage.setItem("painel-ordem",JSON.stringify(ord))}catch(e){}};
+const paramOrd=(k,t)=>t===ABA_ORDENS[k][0]?"ordem":"ordem_"+t;
+const hashDe=k=>"#"+k+((ABA_ORDENS[k]||[]).filter(t=>ord[t]).map((t,i)=>(i?"&":"?")+paramOrd(k,t)+"="+encodeURIComponent(ord[t])).join(""));
+function lerHash(){const[h,qs]=location.hash.slice(1).split("?"),pr=new URLSearchParams(qs||"");
+  for(const t of ABA_ORDENS[h]||[])if(pr.has(paramOrd(h,t)))ord[t]=valida(t,pr.get(paramOrd(h,t)));
+  return h}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dur=s=>{if(s==null)return"";s=Math.max(0,Math.round(s));if(s<60)return s+"s";if(s<3600)return Math.floor(s/60)+"min";return Math.floor(s/3600)+"h"+String(Math.floor(s%3600/60)).padStart(2,"0")};
+const atras=t=>t?dur(Date.now()/1000-t)+" atrás":"";
+const tok=n=>{n=+n||0;const f=(v,d)=>v.toLocaleString("pt-BR",{maximumFractionDigits:d,minimumFractionDigits:d});return n>=1e9?f(n/1e9,2)+" bi":n>=1e6?f(n/1e6,1)+" mi":n>=1e3?f(n/1e3,1)+" mil":String(n)};
+const barra=(p,cl="")=>`<div class="barra ${cl}"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></div>`;
+const cor=e=>e==="concluida"?"":e==="andando"?"and":"fila";
+const pinta=(id,html)=>{const el=$(id);if(el&&el.dataset.h!==html){el.dataset.h=html;el.innerHTML=html;el.querySelectorAll("table").forEach(rotula)}}
+function rotula(t){const h=[...t.querySelectorAll("th")].map(x=>x.textContent.trim());t.classList.add("cart");for(const r of t.querySelectorAll("tr"))[...r.children].forEach((c,i)=>{if(c.tagName==="TD"&&!c.dataset.r)c.dataset.r=h[i]||""})}; // só mexe no DOM se mudou
+const nl=n=>(+n||0).toLocaleString("pt-BR");
+function quadroLinhas(q){
+  if(!q)return vazio("calculando…");
+  const av=(q.avisos||[]).map(x=>`<div class="lin pequeno" style="color:var(--blq)">${esc(x)}</div>`).join(""),ar=q.arquivos||{};
+  const wt=(q.worktrees||[]).map(w=>`<div class="lin pequeno"><b>${esc(w.ramo)}</b>: <span class="num">+${nl(w.a_frente.adicionadas)} −${nl(w.a_frente.removidas)}</span> à frente da dev (<span class="num">+${nl(w.por_commitar.adicionadas)} −${nl(w.por_commitar.removidas)}</span> por commitar)</div>`).join("");
+  return av+`<div class="cab"><b class="num" style="font-size:22px;color:var(--acc2)">${nl(q.codigo_e_testes)}</b><span class="mut">linhas de código e testes (SQL, Python, TypeScript, Shell)</span></div>
+    <table><tr><th>Categoria</th><th class="n">Adicionadas</th><th class="n">Removidas</th></tr>${q.categorias.map(c=>`<tr><td>${esc(c.nome)}</td><td class="n num">+${nl(c.adicionadas)}</td><td class="n num">−${nl(c.removidas)}</td></tr>`).join("")}
+    <tr><td><b>Total</b></td><td class="n num"><b>+${nl(q.total.adicionadas)}</b></td><td class="n num"><b>−${nl(q.total.removidas)}</b></td></tr></table>
+    <div class="lin pequeno mut">${nl(ar.adicionados)} arquivo(s) adicionado(s), ${nl(ar.modificados)} modificado(s), ${nl(ar.removidos)} removido(s) · ${esc(q.faixa||"origin/main...dev")}</div>`+wt;
+}
+const vazio=t=>`<div class="vazio">${t}</div>`;
+const hhmm=iso=>String(iso||"").slice(11,16);
+const reduz=matchMedia("(prefers-reduced-motion: reduce)");
+// número que conta até o valor novo (curto: 700 ms); sem movimento, só troca
+function contar(el,alvo,fmt){if(!el)return;const de=el._v??0;el._v=alvo;if(reduz.matches||de===alvo||!isFinite(de)){el.textContent=fmt(alvo);return}
+  const t0=performance.now();const passo=t=>{const k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.textContent=fmt(de+(alvo-de)*e);if(k<1&&el._v===alvo)requestAnimationFrame(passo)};requestAnimationFrame(passo)}
+
+/* ---------- perguntas: as do servidor novo, ou as do duvidas.md (servidor antigo) ---------- */
+function listaPerguntas(d){
+  if(d.perguntas&&Array.isArray(d.perguntas.lista))return d.perguntas.lista;
+  return (d.duvidas.abertas||[]).map(x=>({...x,header:x.id,pergunta:x.titulo,contexto:x.situacao,multiplas:false,fonte:"md",
+    opcoes:x.opcoes.map(o=>({...o,rotulo:o.texto,descricao:""})).sort((a,b)=>b.recomendada-a.recomendada)}));
+}
+function abertasSemResposta(d){const pend=new Set(((d.respostas||{}).pendentes||[]).map(x=>x.id));return listaPerguntas(d).filter(q=>!pend.has(q.id)&&!envio[q.id]?.ok).length}
+
+/* ---------- busca e filtros ---------- */
+const EFS=["low","medium","high","xhigh","max"],EFORD=e=>{const i=EFS.indexOf(e);return i<0?EFS.length:i};
+const efTag=e=>e?`<span class="tag ef-${esc(e)}" title="${e==="low"?"effort low derruba a qualidade: não deveria aparecer":"effort"}">${e==="low"?"⚠ ":""}${esc(e)}</span>`:"";
+const tagsAg=x=>`<span class="tags"><span class="tag ${x.ativo?"acc":""}">${esc(x.modelo||"?")}</span>${efTag(x.effort)}</span>`;
+const q=()=>busca.toLowerCase();
+const casa=(...partes)=>{const s=q();return!s||partes.join(" ").toLowerCase().includes(s)};
+const marca=t=>{t=String(t??"");const s=busca.trim(),i=s?t.toLowerCase().indexOf(s.toLowerCase()):-1;return i<0?esc(t):esc(t.slice(0,i))+"<mark>"+esc(t.slice(i,i+s.length))+"</mark>"+esc(t.slice(i+s.length))};
+const okTarefa=t=>(!fil.estado||t.estado===fil.estado)&&(!fil.wf||t.workflows.some(w=>w.id===fil.wf))&&casa("T"+t.id,t.titulo,t.estado_texto,ETQ[t.estado]);
+const estAg=x=>x.ativo?"rodando":x.sem_sinal?"sem_sinal":"terminou";
+const okAgente=x=>(!fil.estado||estAg(x)===fil.estado)&&(!fil.modelo||(x.modelo||"").includes(fil.modelo))&&(!fil.effort||x.effort===fil.effort)&&(!fil.wf||x.workflow===fil.wf)&&casa(x.rotulo,x.modelo,x.effort,x.workflow,x.fase,x.fala,x.resumo);
+const okWf=w=>(!fil.wf||w.id===fil.wf)&&(!fil.effort||(w.efforts||[]).includes(fil.effort))&&(!fil.estado||(w.rodando?"rodando":"terminou")===fil.estado)&&casa(w.nome,w.id,w.resumo,w.tarefas.map(n=>"T"+n).join(" "),w.fases.join(" "));
+
+function opcoesFiltro(d){
+  const mods=new Set(),efs=new Set(),wfs=new Map();
+  for(const x of d.agentes){if(x.modelo)mods.add(x.modelo);if(x.effort)efs.add(x.effort)}
+  for(const w of d.workflows)for(const e of w.efforts||[])efs.add(e);
+  if(d.consumo)for(const m in d.consumo.modelos)mods.add(m.replace(/^claude-/,"").split("-")[0]);
+  for(const w of d.workflows)wfs.set(w.id,w.nome);
+  const sel=(id,vazioTxt,itens,atual)=>pinta(id,`<option value="">${vazioTxt}</option>`+itens.map(([v,t])=>`<option value="${esc(v)}"${v===atual?" selected":""}>${esc(t)}</option>`).join(""));
+  sel("f-estado","estado: todos",[["andando","tarefa andando"],["fila","tarefa na fila"],["bloqueada","tarefa bloqueada"],["concluida","tarefa concluída"],["desconhecido","tarefa sem estado"],["rodando","agente/workflow rodando"],["terminou","agente/workflow terminou"],["sem_sinal","agente sem sinal"]],fil.estado);
+  sel("f-tipo","tipo: todos",Object.entries(TIPOS),fil.tipo);
+  sel("f-modelo","modelo: todos",[...mods].sort().map(m=>[m,m]),fil.modelo);
+  sel("f-effort","effort: todos",[...efs].sort((a,b)=>EFORD(a)-EFORD(b)).map(e=>[e,e]),fil.effort);
+  sel("f-wf","workflow: todos",[...wfs].map(([id,n])=>[id,n+" ("+id.slice(3,9)+")"]),fil.wf);
+}
+
+function pintaOrdens(tipos){
+  pinta("ordens",tipos.map(t=>{const o=ORDENS[t],pre="ordem"+(tipos.length>1?" de "+o.nome:"")+": ";
+    return`<select data-ord="${t}" aria-label="Ordenar ${o.nome} por">${o.opcoes.map(x=>`<option value="${x.id}"${x.id===ord[t]?" selected":""}>${esc(pre+x.rotulo)}</option>`).join("")}</select>`}).join(""));
+}
+$("ordens").addEventListener("change",e=>{const t=e.target.dataset.ord;if(!t)return;ord[t]=valida(t,e.target.value);salvaOrd();
+  const h=hashDe(aba);if(location.hash!==h)history.replaceState(null,"",h);dados&&(document.querySelectorAll("#perguntas").forEach(el=>el.dataset.h=""),render())});
+
+/* ---------- linhas reutilizadas ---------- */
+function tempoTarefa(t){
+  const p=t.tempo;if(!p)return"";
+  const hora=p.conclusao_em?" · previsto para "+new Date(p.conclusao_em*1000).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"";
+  return{txt:esc(p.texto),tip:esc("Base: "+p.base+hora)};
+}
+function linhaTarefa(t){
+  const w=t.worktree,op=aberta===t.id,tp=tempoTarefa(t);let det="";
+  if(op)det=`<div class="det"><b>Estado:</b> ${esc(t.estado_texto||"(sem linha de Estado no TASKS.md)")}`
+    +(w?`<br><b>Branch:</b> ${esc(w.ramo)} · ${w.a_frente??"?"} commit(s) à frente da dev · ${w.na_dev?"já na dev":"ainda fora da dev"} · ${w.mudancas_nao_commitadas} arquivo(s) com mudança não commitada`:"")
+    +(t.workflows.length?`<br><b>Workflows:</b> ${t.workflows.map(x=>esc(x.nome)+" ("+esc(x.id)+(x.rodando?", rodando":"")+")").join("; ")}`:"")
+    +(tp?`<br><b>Tempo:</b> <span title="${tp.tip}">${tp.txt}</span> · ${tp.tip}`:"")
+    +(t.bateria_rodando?"<br><b>Bateria rodando agora.</b>":t.na_fila_de_baterias?"<br>Na fila de baterias.":"")+"</div>";
+  return`<div class="lin tarefa" data-t="${t.id}" tabindex="0" role="button" aria-expanded="${op}"><div class="cab"><b class="num">T${t.id}</b><span class="t">${marca(t.titulo)}</span><span class="tag ${t.estado}">${ETQ[t.estado]}</span>${barra(t.percentual,cor(t.estado))}<span class="p num">${t.percentual}%</span>${tp?`<span class="pequeno mut num" title="${tp.tip}">${tp.txt}</span>`:""}</div>${det}</div>`;
+}
+function linhaAgente(x){
+  const idade=x.ativo&&x.inicio?`há ${dur(Date.now()/1000-x.inicio)}`:`sinal ${atras(x.ultimo_sinal)}`;
+  return`<div class="lin"><div class="cab"><span class="t">${x.ativo?'<span class="pulso"></span>':""}<b>${marca(x.rotulo)}</b></span>${tagsAg(x)}</div>
+    <div class="pequeno mut">${x.ativo?"rodando":x.sem_sinal?"sem sinal (parado?)":"terminou"+(x.resumo?" · "+esc(x.resumo):"")} · ${idade}${x.workflow?" · "+esc(x.workflow)+(x.fase?" / "+esc(x.fase):""):""}</div>
+    ${x.fala?`<div class="fala">${marca(x.fala)}</div>`:""}</div>`;
+}
+function linhaWf(w,con){
+  const p=w.status==="completed"?100:w.agentes?Math.round(100*w.feitos/w.agentes):0,c=con&&con.workflows.find(y=>y.id===w.id);
+  return`<div class="lin"><div class="cab"><b class="t">${w.rodando?'<span class="pulso"></span>':""}${marca(w.nome)}</b><span class="tags"><span class="tag ${w.rodando?"andando":w.status==="completed"?"concluida":"bloqueada"}">${w.rodando?"rodando":esc(w.status)}</span>${(w.efforts||[]).map(efTag).join("")}</span>${barra(p,w.rodando?"and":"")}</div>
+    <div class="pequeno mut">${esc(w.id)} · ${w.feitos}/${w.agentes} passos · ${w.tarefas.map(n=>"T"+n).join(" ")} · ${esc(w.fases.join("/"))} · ${atras(w.atividade)}${c?` · <span class="num">${tok(c.tokens)}</span> tokens · ${dur(c.segundos)} de agentes`:""}</div>
+    ${w.vereditos.length?`<div class="fala">vereditos: ${w.vereditos.map(esc).join(", ")}</div>`:""}</div>`;
+}
+function linhaBateria(l,total){
+  const pr=l.passo.includes("testes de tela")&&!l.terminou?`${l.tela_feitos}/${total}`+(l.tela_falhas?` · ${l.tela_falhas} ✘`:""):"";
+  const p=l.terminou?100:Math.min(99,Math.round(100*l.tela_feitos/total));
+  const st=l.terminou?(l.falhou.length?"caiu":"passou"):l.ativa?"rodando":"parada";
+  return`<div class="lin"><div class="cab"><b>${marca(l.wt)}</b><span class="tag ${l.falhou.length?"bloqueada":l.terminou?"concluida":"andando"}">${st}</span><span class="t mut pequeno">${esc(l.terminou?"":l.passo)} ${pr}</span>${l.passo.includes("tela")||l.terminou?barra(p,l.falhou.length?"fila":""):""}</div>
+    ${l.falhou.map(f=>`<div class="fala" style="color:var(--blq)">FALHOU: ${esc(f)}</div>`).join("")}${l.resumo.filter(r=>r.status==="PULADO").map(r=>`<div class="fala">PULADO: ${esc(r.nome.slice(0,90))}</div>`).join("")}
+    <div class="pequeno mut">${atras(l.atividade)}${l.duracao?" · durou "+dur(l.duracao):""}</div></div>`;
+}
+
+/* ---------- render ---------- */
+/* shells em segundo plano (aba Rodando): o que a sessão disparou e o que cada um está fazendo */
+const ESTSH={terminou:["terminou","concluida"],falhou:["falhou","bloqueada"],memoria:["morto por falta de memória","bloqueada"],parado:["parado","andando"]};
+const rodAb=new Set(); // <details> abertos: sobrevivem ao redesenho de 5 em 5 s
+document.addEventListener("toggle",ev=>{const k=ev.target.dataset&&ev.target.dataset.k;if(k){ev.target.open?rodAb.add(k):rodAb.delete(k)}},true);
+const detalhe=(k,rot,txt)=>txt?`<details data-k="${esc(k)}"${rodAb.has(k)?" open":""}><summary>${rot}</summary><pre>${esc(txt)}</pre></details>`:"";
+function cartaoShell(x){
+  const rod=!x.estado,[et,cl]=rod?["rodando","acc"]:ESTSH[x.estado]||[x.estado,""];
+  const tempo=rod?"há "+dur(Date.now()/1000-x.desde):(x.quando?atras(x.quando):"")+(x.duracao!=null?" · durou "+dur(x.duracao):"");
+  return`<div class="lin"><div class="cab"><span class="t">${rod?'<span class="pulso"></span>':""}<b>${marca(x.descricao||"(sem descrição)")}</b></span><span class="tag ${cl}">${esc(et)}${x.codigo?" (código "+esc(x.codigo)+")":""}</span></div>
+    <div class="pequeno mut">${esc(tempo)} · <span class="num">${esc(x.id)}</span>${x.pid?" · pid "+esc(x.pid):""}${x.sessao?" · sessão "+esc(x.sessao):""}${rod&&!x.fundo?" · de um agente ou ainda sem descrição":""}</div>
+    ${detalhe(x.id+":c","comando",x.comando)}${detalhe(x.id+":s","últimas linhas da saída",(x.saida||[]).join("\n"))}</div>`}
+const okShell=x=>!fil.modelo&&!fil.effort&&!fil.wf&&(!fil.estado||(x.estado||"rodando")===fil.estado)&&casa(x.descricao,x.comando,x.id,(x.saida||[]).join(" "));
+/* workflows (Visão geral): quadro do que está rodando, com etapas, tarefas e agentes; os últimos 3 terminados recolhidos */
+const ESTWF={completed:["concluído","concluida"],failed:["falhou","bloqueada"],killed:["parado","andando"]};
+const ESTTAREFA={rodando:["rodando","acc"],aguardando:["aguardando",""],"entre passos":["entre passos","andando"]};
+const ROTETAPA={atual:"em andamento",feita:"feita",parada:"sem sinal",falta:"falta"};
+function cartaoWf(q){
+  const agora=Date.now()/1000,fases=q.fases||[],nf=fases.length;
+  const etapas=fases.map((f,i)=>`<span class="et ${esc(f.estado)}" title="${esc((f.detalhe?f.detalhe+" · ":"")+ROTETAPA[f.estado]+": "+f.terminados+" de "+f.iniciados+" agente(s) prontos")}"><span class="n">${i+1}/${nf}</span>${esc(f.titulo)}${f.iniciados?` <span class="n">${f.terminados}/${f.iniciados}</span>`:""}</span>`).join('<span class="seta" aria-hidden="true">→</span>');
+  const tarefas=(q.tarefas||[]).map(t=>{const[et,cl]=ESTTAREFA[t.estado]||[t.estado,""];
+    return`<div class="lin"><div class="cab"><b class="t">${t.estado==="rodando"?'<span class="pulso"></span>':""}${esc(t.id)}</b><span class="tags"><span class="tag ${cl}">${esc(et)}</span>${t.etapa?`<span class="tag">${esc(t.etapa)}${t.rodada?" · rodada "+esc(t.rodada):""}</span>`:""}${t.modelo?`<span class="tag">${esc(t.modelo)}</span>`:""}${efTag(t.effort)}</span></div>
+      <div class="pequeno mut">${t.passos} passo(s) · ${t.feitos}/${t.agentes} agente(s) prontos${t.ultimo?" · último resultado: "+esc(t.ultimo):""}</div></div>`}).join("");
+  const ags=(q.agentes||[]).map(x=>`<div class="lin pequeno"><span class="pulso"></span><b>${esc(x.rotulo)}</b> ${tagsAg({...x,ativo:true})} <span class="mut">${x.inicio?"há "+dur(agora-x.inicio):""}</span></div>`).join("");
+  return`<div class="wf"><div class="cab"><span class="t"><span class="pulso"></span><b>${esc(q.nome)}</b></span><span class="tags">${q.sem_sinal!=null?`<span class="tag" title="nenhum agente deu sinal; talvez esteja só pensando">sem sinal há ${esc(dur(q.sem_sinal))}</span>`:'<span class="tag acc">rodando</span>'}<span class="tag num" title="${esc(q.id)}">${esc(q.id.slice(3,9))}</span></span></div>
+    ${q.descricao?`<div class="pequeno mut">${esc(q.descricao)}</div>`:""}
+    <div class="etapas">${etapas||'<span class="mut pequeno">etapas ainda não conhecidas</span>'}</div>
+    <div class="pequeno mut">${q.fase_atual?"etapa atual: <b>"+esc(q.fase_atual)+"</b> · ":""}${q.agentes_feitos}/${q.agentes_total} agente(s) prontos${q.segundos!=null?" · há "+dur(q.segundos):""}${q.tokens!=null?` · <span class="num">${tok(q.tokens)}</span> tokens`:""}</div>
+    ${tarefas?"<h3>Tarefas</h3>"+tarefas:""}${ags?"<h3>Agentes ativos</h3>"+ags:""}</div>`}
+function cartaoWfFim(x){
+  const[et,cl]=ESTWF[x.status]||[x.status,""],k="wf:"+x.id;
+  return`<details data-k="${esc(k)}"${rodAb.has(k)?" open":""}><summary><span class="tag ${cl}">${esc(et)}</span> <b>${esc(x.nome)}</b> <span class="mut">${x.duracao!=null?dur(x.duracao)+" · ":""}${atras(x.fim)}</span></summary>
+    <div class="pequeno mut">${esc(x.id)} · ${x.agentes} agente(s) · <span class="num">${tok(x.tokens)}</span> tokens${x.fases.length?" · "+x.fases.map(esc).join(" → "):""}${x.resumo?"<br>"+esc(x.resumo):""}</div></details>`}
+
+/* ---------- limites de uso (statusline): janela de 5 h e semana ---------- */
+const DUR_J={cinco_horas:18000,semana:604800},NOME_J={cinco_horas:"Sessão 5 h",semana:"Semana"},SEM_DADOS="sem dados ainda (liga pela statusline)";
+const agoraS=()=>Date.now()/1000;
+const resetDe=(j,d)=>j.reset_em!=null?j.reset_em:(j.falta_segundos!=null?d.gerado_em+j.falta_segundos:null);
+const spanFalta=al=>`<span data-falta="${al}"></span>`,spanAtras=t=>t==null?"–":`<span data-atras="${t}"></span>`;
+const voltaTxt=al=>{const h=horaAlvo(al,agoraS());return h.includes(" ")?"volta "+h:"volta às "+h};
+const pctTxt=v=>(+v).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%";
+const medidor=(p,faixa,nome,cls)=>`<div class="barra med ${faixa} ${cls||""}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}" aria-label="${esc(nome)}: ${Math.round(p)}%"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></div>`;
+function limKpi(ch,j,d){
+  const nome=NOME_J[ch];
+  if(!j||j.pct==null)return`<div class="kpi lim sem"><div class="rot">${nome}</div><div class="val num">–</div><div class="sub">${SEM_DADOS}</div></div>`;
+  const f=faixaLimite(j.pct),al=resetDe(j,d),pv=textoPrevisao(j,agoraS());
+  return`<div class="kpi lim ${f.faixa}"><div class="rot">${nome}<span class="est">${f.texto}</span></div><div class="val num">${Math.round(j.pct)}%</div>${medidor(j.pct,f.faixa,nome,"larga")}
+    <div class="sub">${al!=null?esc(voltaTxt(al))+" (em "+spanFalta(al)+")":"sem horário de volta"}</div>${pv?`<div class="sub">${esc(pv)}</div>`:""}</div>`}
+const eixoT=(t,ch)=>ch==="semana"?new Date(t*1000).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):horaAlvo(t,agoraS());
+function limCard(ch,j,d){
+  const nome=NOME_J[ch];
+  if(!j||j.pct==null)return`<div class="lim-card sem"><h3>${nome}</h3><div class="vazio">${SEM_DADOS}</div></div>`;
+  const f=faixaLimite(j.pct),al=resetDe(j,d),du=DUR_J[ch],n=(j.serie||[]).length,g=al!=null?grafico(j.serie,al,du,300,80):{pontos:"",atual:null},ini=al!=null?al-du:null;
+  const lbl=`Uso da janela ${nome}: ${Math.round(j.pct)}% agora (${f.texto}), ${n} leitura(s) na série${g.atual?"":", nenhuma dentro da janela"}`;
+  const lin=(r,v)=>`<dt>${r}</dt><dd>${v}</dd>`;
+  const grafSvg=al==null?"":`<svg class="graf" viewBox="-4 -6 308 96" role="img" aria-label="${esc(lbl)}"><title>${esc(lbl)}</title>
+    <rect class="g-fundo" x="0" y="0" width="300" height="80"/><line class="g-50" x1="0" x2="300" y1="40" y2="40"/><line class="g-100" x1="0" x2="300" y1="0" y2="0"/>
+    ${g.pontos.includes(" ")?`<polyline class="g-linha ${f.faixa}" points="${g.pontos}"/>`:""}${g.atual?`<circle class="g-ponto ${f.faixa}" cx="${g.atual[0]}" cy="${g.atual[1]}" r="4.5"/>`:""}</svg>
+    <div class="g-eixo"><span>${esc(eixoT(ini,ch))}</span><span>tracejado vermelho = 100%</span><span>${esc(eixoT(al,ch))}</span></div>
+    ${n<2?`<div class="pequeno mut">${n} leitura(s): a linha aparece com 2 ou mais.</div>`:""}`;
+  return`<div class="lim-card ${f.faixa}"><h3>${nome}</h3><div><span class="grande-pct num">${pctTxt(j.pct)}</span><span class="est">${f.texto}</span></div>${medidor(j.pct,f.faixa,nome,"larga grande")}
+    <dl>${lin("Volta",al!=null?esc(horaAlvo(al,agoraS())):"–")}${lin("Falta",al!=null?spanFalta(al):"–")}
+    ${lin("Ritmo",j.ritmo_pct_por_hora!=null?esc(pctTxt(j.ritmo_pct_por_hora))+"/h":"–")}${lin("Previsão de 100%",j.previsao_100_em!=null?"às "+esc(horaAlvo(j.previsao_100_em,agoraS())):"–")}
+    ${lin("Atualizado",spanAtras(j.atualizado_em))}${lin("Leituras na série",String(n))}</dl>${grafSvg}</div>`}
+function tabelaSessoes(ss){
+  if(!ss.length)return vazio("Nenhuma sessão reportou ainda ("+SEM_DADOS.replace(/^sem dados ainda /,"")+").");
+  const nv=v=>v==null?"–":tok(v),ms=v=>v==null?"–":dur(v/1000);
+  return`<table class="tab-sess"><thead><tr><th>Modelo</th><th>Contexto</th><th class="n">Entrada</th><th class="n">Saída</th><th class="n">Custo</th><th class="n">Duração</th><th class="n">API</th><th class="n">Linhas</th><th class="n">Atualizado</th></tr></thead><tbody>`
+  +ss.map(s=>{const c=s.contexto_pct,f=faixaLimite(c);
+    return`<tr><td data-r="Modelo"><b>${esc(s.modelo||"?")}</b><div class="mut pequeno">${esc(s.session_id_curto||"")} · ${esc(s.cwd_curto||"")}${s.versao?" · v"+esc(s.versao):""}</div></td>
+    <td data-r="Contexto">${c==null?"–":`<span class="num">${Math.round(c)}%</span> ${medidor(c,f.faixa,"Contexto")}`}${s.contexto_tamanho?`<span class="mut pequeno"> de ${tok(s.contexto_tamanho)}</span>`:""}</td>
+    <td class="n num" data-r="Tokens entrada">${nv(s.tokens_entrada)}</td><td class="n num" data-r="Tokens saída">${nv(s.tokens_saida)}</td>
+    <td class="n num" data-r="Custo">${s.custo_usd==null?"–":"US$ "+(+s.custo_usd).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    <td class="n num" data-r="Duração">${ms(s.duracao_ms)}</td><td class="n num" data-r="Duração da API">${ms(s.duracao_api_ms)}</td>
+    <td class="n num" data-r="Linhas">${s.linhas_mais==null&&s.linhas_menos==null?"–":`<span class="ok">+${s.linhas_mais??0}</span> / <span class="menos">−${s.linhas_menos??0}</span>`}</td>
+    <td class="n" data-r="Atualizado">${spanAtras(s.atualizado_em)}</td></tr>`}).join("")+"</tbody></table>"}
+function renderLimites(d){
+  const L=d.limites||{},J=L.janelas||{};
+  pinta("lim-kpis",limKpi("cinco_horas",J.cinco_horas,d)+limKpi("semana",J.semana,d));
+  pinta("con-limites",`<div class="lim-grade">${limCard("cinco_horas",J.cinco_horas,d)}${limCard("semana",J.semana,d)}</div>`
+    +`<div class="pequeno mut" style="margin-top:8px">${d.limites?`Fonte: ${esc(L.fonte||"?")} · última leitura ${spanAtras(L.ultima_leitura_em)}`:"servidor antigo: reinicie para ver os limites"}</div>`);
+  pinta("con-sessoes",tabelaSessoes(L.sessoes||[]));
+  tickTempo();
+}
+// contagens regressivas e "há X" andam sozinhas a cada segundo, sem refazer o HTML
+function tickTempo(){
+  const n=agoraS();
+  for(const el of document.querySelectorAll("[data-falta]"))el.textContent=restante(+el.dataset.falta-n);
+  for(const el of document.querySelectorAll("[data-atras]")){const t=n-el.dataset.atras;el.textContent=t<5?"agora":"há "+restante(t)}
+}
+setInterval(tickTempo,1000);
+const btnFiltros=$("btn-filtros");
+btnFiltros.addEventListener("click",()=>{const a=$("area-filtros").classList.toggle("aberto");btnFiltros.setAttribute("aria-expanded",String(a))});
+function rotuloFiltros(){const n=Object.values(fil).filter(Boolean).length+(ABA_ORDENS[aba]||[]).filter(t=>ord[t]).length;
+  const t=n?`Filtros (${n} ativo${n>1?"s":""})`:"Filtros";if(btnFiltros.textContent!==t)btnFiltros.textContent=t}
+function render(){
+  const d=dados;if(!d)return;
+  renderLimites(d);
+  const pct=d.geral.percentual;
+  $("anel").style.strokeDashoffset=String(326.7*(1-pct/100));
+  contar($("pct"),pct,v=>Math.round(v)+"%");
+  $("fase").textContent=d.geral.fase;
+  $("pctnota").textContent=`média do andamento · ${d.geral.contagem.concluida||0} de ${d.geral.total} tarefas concluídas (T${d.geral.leva_a_partir_de}+)`+(d.geral.contagem.bloqueada?` · ${d.geral.contagem.bloqueada} bloqueada(s)`:"");
+  $("quando").textContent="atualizado "+new Date(d.gerado_em*1000).toLocaleTimeString("pt-BR");
+  $("ponto").className="ponto";
+  const con=d.consumo,pv=d.previsao;
+  if(con){contar($("k-tok"),con.total.tokens,tok);$("k-tok-sub").textContent=`${tok(con.total.saida)} de saída · ${dur(con.agentes_segundos)} de agentes em ${dur(con.real_segundos)} reais`}
+  else{$("k-tok").textContent="…";$("k-tok-sub").textContent=d.consumo===undefined?"servidor antigo: reinicie para ver":"somando os registros (primeira leitura)"}
+  if(pv&&pv.horas!=null){$("k-prev").textContent="≈ "+dur(pv.horas*3600);$("k-prev-sub").textContent="estimativa: "+new Date(pv.conclusao_em*1000).toLocaleString("pt-BR",{weekday:"short",hour:"2-digit",minute:"2-digit"})}
+  else{$("k-prev").textContent="–";$("k-prev-sub").textContent=pv?"sem ritmo medido ainda":"aguardando o consumo"}
+
+  const b=d.baterias,at=d.agentes.filter(x=>x.ativo),fr=[];
+  if(at.length)fr.push(`<span class="pulso"></span>${at.length} agente(s) rodando: `+esc(at.slice(0,4).map(x=>x.rotulo).join(", ")));
+  const ra=d.rodando_agora||{shells:{rodando:[],terminados:[]}},sr=ra.shells.rodando;
+  if(sr.length)fr.push(`<a href="#rodando" data-ir="rodando">${sr.length} shell(s) em segundo plano</a>`);
+  if(b.rodando)fr.push(`bateria da ${esc(b.rodando.wt)} há ${dur(Date.now()/1000-b.rodando.desde)}`+(b.fila.length?`; fila: ${esc(b.fila.join(", "))}`:""));
+  pinta("agora",fr.join(" · ")||"Nada rodando agora.");
+  pinta("erros",Object.entries(d.erros||{}).map(([k,v])=>`<div class="erro">fonte "${esc(k)}" falhou: ${esc(v)}</div>`).join(""));
+
+  const nAb=abertasSemResposta(d);
+  pinta("abas",ABAS.map(([k,n])=>`<button role="tab" data-aba="${k}" aria-selected="${aba===k&&!busca}" aria-controls="v-${k}">${n}${k==="perguntas"&&nAb?`<span class="cont" aria-label="${nAb} abertas">${nAb}</span>`:""}${k==="rodando"&&sr.length?`<span class="cont" aria-label="${sr.length} rodando">${sr.length}</span>`:""}</button>`).join(""));
+  opcoesFiltro(d);
+  const ativa=busca||fil.tipo?"busca":aba;
+  for(const el of document.querySelectorAll(".vista"))el.classList.toggle("on",el.id==="v-"+ativa);
+  gravaPadrao();
+
+  const total=b.rodando?b.rodando.total_tela:720;
+  const oc={agora:Date.now()/1000,consumo:con},O_=(t,l,forca)=>ordenar(l,t,forca?ord[t]:"",oc);
+  const emBusca=ativa==="busca";  // na busca as listas seguem a ordem padrão: os seletores ficam escondidos
+  const tarefas=O_("tarefas",d.tarefas.filter(okTarefa),!emBusca);
+  const agentes=O_("agentes",d.agentes.filter(okAgente),!emBusca),wfs=O_("workflows",d.workflows.filter(okWf),!emBusca);
+  pintaOrdens(emBusca?[]:ABA_ORDENS[aba]||[]);rotuloFiltros();
+
+  if(ativa==="busca"){
+    const g=[];const tipo=k=>!fil.tipo||fil.tipo===k;
+    const add=(k,itens,f)=>{if(tipo(k)&&itens.length)g.push(`<div class="grupo"><h3>${TIPOS[k]} · ${itens.length}</h3>${itens.slice(0,40).map(f).join("")}</div>`)};
+    add("perguntas",listaPerguntas(d).filter(x=>casa(x.id,x.header,x.pergunta,x.contexto,x.opcoes.map(o=>o.rotulo+" "+(o.descricao||"")).join(" "))),x=>`<div class="lin"><a href="#perguntas" data-ir="perguntas"><b>${esc(x.id)}</b></a> ${marca(x.pergunta)}</div>`);
+    add("tarefas",tarefas,linhaTarefa);
+    add("agentes",agentes,linhaAgente);
+    add("workflows",wfs,w=>linhaWf(w,con));
+    add("worktrees",d.worktrees.filter(w=>casa(w.nome,w.ramo,w.tarefa?"T"+w.tarefa:"")),w=>`<div class="lin"><b>${marca(w.nome)}</b> <span class="mut pequeno">${marca(w.ramo)}</span></div>`);
+    add("baterias",b.logs.filter(l=>casa(l.wt,l.passo,l.falhou.join(" "))),l=>linhaBateria(l,total));
+    add("shells",[...ra.shells.rodando,...ra.shells.terminados].filter(okShell),cartaoShell);
+    add("merges",d.merges.filter(m=>casa(m.sha,m.mensagem)),m=>`<div class="lin pequeno"><b class="num">${esc(m.sha)}</b> ${marca(m.mensagem.replace("chore(merge): ",""))} <span class="mut">${atras(m.quando)}</span></div>`);
+    pinta("resultados",g.join("")||vazio("Nada encontrado."));
+  }
+
+  // visão geral
+  pinta("previsao",pv?`<div class="cab"><b class="num" style="font-size:22px;color:var(--acc2)">${pv.horas!=null?"≈ "+esc(dur(pv.horas*3600)):"–"}</b><span class="mut">${pv.conclusao_em?"conclusão perto de "+esc(new Date(pv.conclusao_em*1000).toLocaleString("pt-BR",{weekday:"long",hour:"2-digit",minute:"2-digit"})):""}</span></div>
+    <ul class="base pequeno mut">${pv.base.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><div class="pequeno mut">É estimativa: o ritmo muda com o tamanho das tarefas e com o que for bloqueado.</div>`:vazio("Aguardando a soma do consumo."));
+  pinta("tempo",con?`<div class="grade-num"><div class="kpi"><div class="rot">Tempo real</div><div class="val num">${dur(con.real_segundos)}</div><div class="sub">desde ${esc(new Date(con.inicio*1000).toLocaleString("pt-BR",{weekday:"short",hour:"2-digit",minute:"2-digit"}))}</div></div>
+    <div class="kpi"><div class="rot">Agentes somados</div><div class="val num">${dur(con.agentes_segundos)}</div><div class="sub">${con.real_segundos?(con.agentes_segundos/con.real_segundos).toLocaleString("pt-BR",{maximumFractionDigits:1})+"× em paralelo":""}</div></div></div>`:vazio("…"));
+  const linhaAgRod=x=>`<div class="lin pequeno"><span class="pulso"></span><b>${esc(x.rotulo)}</b> ${tagsAg(x)} <span class="mut">${x.inicio?"há "+dur(Date.now()/1000-x.inicio):""}</span></div>`;
+  const agRod=at.slice(0,5).map(linhaAgRod).join("")+(at.length>5?`<div class="lin pequeno mut">e mais ${at.length-5} agente(s)</div>`:"");
+  const linhaRod=x=>`<div class="lin pequeno"><span class="pulso"></span><b>${esc(x.descricao||x.comando.slice(0,80))}</b> <span class="mut">há ${dur(Date.now()/1000-x.desde)}</span></div>`;
+  pinta("ger-rodando",(sr.length?sr.slice(0,5).map(linhaRod).join("")+(sr.length>5?`<div class="lin pequeno mut">e mais ${sr.length-5}</div>`:""):"")
+    +(ra.bateria?`<div class="lin pequeno"><span class="pulso"></span><b>bateria da ${esc(ra.bateria.wt)}</b> <span class="mut">${esc(ra.bateria.passo||"")} · há ${dur(Date.now()/1000-ra.bateria.desde)}</span></div>`:"")
+    +agRod
+    +(ra.agentes_ativos||ra.workflows_rodando?`<div class="lin pequeno"><a href="#agentes" data-ir="agentes">${ra.agentes_ativos} agente(s) e ${ra.workflows_rodando} workflow(s) rodando</a></div>`:"")
+    ||vazio("Nada rodando agora."));
+  pinta("rod-resumo",(ra.bateria?`<div class="lin"><div class="cab"><span class="t"><span class="pulso"></span><b>Bateria de testes: ${esc(ra.bateria.wt)}</b></span><span class="tag acc">rodando</span></div>
+    <div class="pequeno mut">etapa: ${esc(ra.bateria.passo||"?")} · há ${dur(Date.now()/1000-ra.bateria.desde)}${ra.bateria.fila.length?" · fila: "+esc(ra.bateria.fila.join(", ")):""} · <a href="#baterias" data-ir="baterias">ver baterias</a></div></div>`:"")
+    +agRod
+    +(ra.agentes_ativos||ra.workflows_rodando?`<div class="lin pequeno"><b>${ra.agentes_ativos}</b> agente(s) e <b>${ra.workflows_rodando}</b> workflow(s) rodando · <a href="#agentes" data-ir="agentes">ver na aba Agentes</a></div>`:""));
+  pinta("rod-shells",sr.length?sr.map(cartaoShell).join(""):vazio("Nenhum shell em segundo plano."));
+  pinta("rod-term",ra.shells.terminados.length?ra.shells.terminados.map(cartaoShell).join(""):vazio("Nenhum terminou ainda."));
+  const qw=d.quadro_workflows||{rodando:[],recentes:[]};
+  pinta("ger-wf",qw.rodando.length?qw.rodando.map(cartaoWf).join(""):vazio(d.quadro_workflows?"Nenhum workflow rodando agora.":"servidor antigo: reinicie para ver os workflows"));
+  pinta("ger-wf-fim",qw.recentes.length?`<h3 class="mut pequeno" style="margin:10px 0 2px">Terminaram há pouco</h3>`+qw.recentes.map(cartaoWfFim).join(""):"");
+  pinta("ger-agentes",at.length?at.map(linhaAgente).join(""):vazio("Nenhum agente rodando."));
+  const and=d.tarefas.filter(t=>t.estado==="andando");
+  pinta("ger-tarefas",and.length?and.map(linhaTarefa).join(""):vazio("Nenhuma tarefa andando."));
+  pinta("ger-baterias",(b.rodando?`<div class="lin"><b><span class="pulso"></span>rodando: ${esc(b.rodando.wt)}</b> <span class="mut">há ${dur(Date.now()/1000-b.rodando.desde)}</span></div>`:"")+(b.fila.length?`<div class="lin pequeno"><b>Fila:</b> ${b.fila.map(esc).join(" → ")}</div>`:"")||vazio("Nenhuma bateria rodando."));
+  pinta("ger-linhas",quadroLinhas(d.quadro_linhas));
+  pinta("merges",d.merges.length?O_("merges",d.merges,true).slice(0,8).map(m=>`<div class="lin pequeno"><b class="num">${esc(m.sha)}</b> ${esc(m.mensagem.replace("chore(merge): ",""))} <span class="mut">${atras(m.quando)}</span></div>`).join(""):vazio("Sem merges."));
+
+  pinta("tarefas",tarefas.map(linhaTarefa).join("")||vazio("Nenhuma tarefa nesse filtro."));
+  pinta("agentes",agentes.length?agentes.slice(0,40).map(linhaAgente).join(""):vazio("Nenhum agente nesse filtro."));
+  pinta("workflows",wfs.length?wfs.map(w=>linhaWf(w,con)).join(""):vazio("Nenhum workflow nesse filtro."));
+
+  // consumo
+  if(con){
+    const T=con.total;
+    pinta("con-total",`<div class="grade-num">${[["Total",T.tokens,"tudo somado"],["Entrada",T.entrada,"sem cache"],["Saída",T.saida,"gerado"],["Cache lido",T.cache_lido,"contexto reaproveitado"],["Cache criado",T.cache_criado,"contexto novo"]].map(([r,v,s])=>`<div class="kpi"><div class="rot">${r}</div><div class="val num">${tok(v)}</div><div class="sub">${s}</div></div>`).join("")}</div>
+      <div class="pequeno mut" style="margin-top:8px">Somado dos registros da sessão (message.usage de cada resposta, contada uma vez). O "tokens" de cada agente no .output do workflow é outra medida (o tamanho do contexto, não a soma) e por isso não bate.</div>`);
+    const mx=Math.max(...con.origens.map(o=>o.tokens),1),NO={principal:"Conversa principal",avulsos:"Agentes avulsos",workflows:"Agentes dos workflows"};
+    pinta("con-origem",con.origens.map(o=>`<div class="lin"><div class="cab"><span class="t">${NO[o.origem]} <span class="mut pequeno">(${o.arquivos} registro(s)${o.origem!=="principal"?", "+dur(o.segundos):""})</span></span><b class="num">${tok(o.tokens)}</b></div>${barra(100*o.tokens/mx,"acc larga")}</div>`).join(""));
+    const mods=Object.entries(con.modelos).filter(([m])=>!fil.modelo||m.includes(fil.modelo)),mm=Math.max(...mods.map(([,v])=>v.tokens),1);
+    pinta("con-modelo",`<table class="t-mod"><tr><th>Modelo</th><th class="n">Total</th><th class="n">Saída</th><th></th></tr>${mods.map(([m,v])=>`<tr><td>${esc(m)}</td><td class="n num">${tok(v.tokens)}</td><td class="n num">${tok(v.saida)}</td><td>${barra(100*v.tokens/mm,"acc")}</td></tr>`).join("")}</table>`);
+    const cw=con.workflows.filter(w=>(!fil.wf||w.id===fil.wf)&&(!fil.effort||(w.efforts||[]).includes(fil.effort))&&(!fil.modelo||w.modelos.some(m=>m.includes(fil.modelo)))&&casa(w.nome,w.id,w.modelos.join(" "),(w.efforts||[]).join(" "))),mw=Math.max(...cw.map(w=>w.tokens),1);
+    pinta("con-wf",cw.length?`<table class="t-wf"><tr><th>Workflow</th><th class="n">Tokens</th><th class="n">Agentes</th><th class="n">Tempo somado</th><th>Modelos</th></tr>${cw.map(w=>`<tr><td>${marca(w.nome)}<div class="pequeno mut">${esc(w.id)} · ${atras(w.atividade)}</div></td><td class="n num">${tok(w.tokens)}${barra(100*w.tokens/mw,"acc")}</td><td class="n num">${w.agentes}</td><td class="n num">${dur(w.segundos)}</td><td class="pequeno"><span class="tags">${w.modelos.map(m=>`<span class="tag">${esc(m.replace(/^claude-/,""))}</span>`).join("")}${(w.efforts||[]).map(efTag).join("")}</span></td></tr>`).join("")}</table>`:vazio("Nenhum workflow nesse filtro."));
+  }else for(const id of["con-total","con-origem","con-modelo","con-wf"])pinta(id,vazio(d.consumo===undefined?"O servidor no ar é da versão anterior: reinicie para ver o consumo.":"Somando os registros (primeira leitura leva alguns segundos)."));
+
+  let bh="";
+  if(b.rodando)bh+=`<div class="lin"><b><span class="pulso"></span>rodando: ${esc(b.rodando.wt)}</b> <span class="mut">há ${dur(Date.now()/1000-b.rodando.desde)}</span></div>`;
+  if(b.fila.length)bh+=`<div class="lin pequeno"><b>Fila:</b> ${b.fila.map(esc).join(" → ")}</div>`;
+  bh+=O_("baterias",b.logs,true).slice(0,10).map(l=>linhaBateria(l,total)).join("");
+  const c=b.cadeia||{};
+  if(c.na_dev&&c.na_dev.length)bh+=`<div class="lin pequeno"><b>Entraram na dev (última cadeia):</b> ${c.na_dev.map(x=>esc(x.wt)+" "+esc(x.sha)).join(", ")}</div>`;
+  if(c.resultados&&c.resultados.length)bh+=`<div class="lin pequeno"><b>Última cadeia:</b> ${c.resultados.map(r=>esc(r.wt)+(r.saida?" ✘":" ✓")).join(", ")}${c.parou?` · parou em <b>${esc(c.parou)}</b>`:""}</div>`;
+  pinta("baterias",bh||vazio("Nenhuma bateria."));
+
+  pinta("worktrees",d.worktrees.length?O_("worktrees",d.worktrees,true).map(w=>`<div class="lin"><div class="cab"><b class="t">${esc(w.nome)}</b><span class="tag ${w.na_dev?"concluida":w.a_frente?"andando":""}">${w.na_dev?"na dev":w.a_frente?w.a_frente+" à frente":"sem commits"}</span></div>
+    <div class="pequeno mut">${esc(w.ramo)}${w.tarefa?" · T"+w.tarefa:""}${w.mudancas_nao_commitadas?` · ${w.mudancas_nao_commitadas} não commitado(s)`:""}</div></div>`).join(""):vazio("Nenhum worktree."));
+  pinta("avisos",(d.duvidas.avisos||[]).length?d.duvidas.avisos.map(x=>`<div class="lin pequeno">${esc(x)}</div>`).join(""):vazio("Nenhum aviso."));
+  const a=d.ambiente||{};
+  const nM=x=>Math.round(x).toLocaleString("pt-BR"),t=a.teto;
+  let mem;
+  if(t&&t.teto_mb!=null&&t.usado_mb!=null){const pct=t.pct!=null?t.pct:100*t.usado_mb/t.teto_mb,f=faixaLimite(pct),pt=t.partes||[];
+    const parte=p=>{const sem=p.sem_teto&&p.sem_teto.length;return`<div class="lin pequeno">${esc(p.nome)}${p.n!=null?` (${p.n})`:""}: <b class="num">${nM(p.mb)} MB</b>${p.teto_mb!=null?` de ${nM(p.teto_mb)} MB`:""}${sem?` <span class="tag andando">sem teto: ${p.sem_teto.map(esc).join(", ")}</span>`:""}</div>`};
+    mem=`<div class="lin">Memória da sessão: <b class="num">${nM(t.usado_mb)}</b> de ${nM(t.teto_mb)} MB (<span class="num">${Math.round(pct)}%</span>) <b class="est ${f.faixa}">${f.texto}</b>${medidor(pct,f.faixa,"Memória da sessão")}</div>
+    ${t.livre_mb!=null?`<div class="lin pequeno">livre no teto: <b class="num">${nM(t.livre_mb)} MB</b></div>`:""}${pt.map(parte).join("")}
+    ${t.maquina&&t.maquina.total_mb!=null?`<div class="lin pequeno mut">máquina: livre ${nM(t.maquina.livre_mb)} de ${nM(t.maquina.total_mb)} MB</div>`:""}
+    ${t.faltando&&t.faltando.length?`<div class="lin pequeno mut">sem dados: ${t.faltando.map(esc).join(", ")}</div>`:""}`}
+  else mem=`<div class="lin">Memória livre: <b class="num">${a.memoria?a.memoria.livre_mb+" MB":"?"}</b> de ${a.memoria?a.memoria.total_mb:"?"} MB</div>`;
+  pinta("ambiente",`${mem}
+    <div class="lin">Trava dos testes de tela: <b>${a.trava?"em uso (pid "+esc(a.trava.pid)+")":"livre"}</b></div>
+    <div class="lin pequeno">Contêineres: ${a.conteineres?a.conteineres.map(esc).join(", "):"?"}</div>
+    <div class="lin pequeno">Publicação pendente: ${d.publicacao&&d.publicacao.itens!=null?d.publicacao.itens+" linhas":"?"} · sessão ${esc(d.sessao.id||"?").slice(0,8)}</div>`);
+  perguntas(d);
+}
+
+/* ---------- aba Perguntas ---------- */
+let rasc={},envio={};  // rascunho e último envio por pergunta: o redesenho não apaga o que a pessoa marcou ou digitou
+function perguntas(d){
+  const r=d.respostas||{pendentes:[],entregues:[]},pend=new Map(r.pendentes.map(x=>[x.id,x]));
+  const lista=ordenar(listaPerguntas(d),"perguntas",ord.perguntas,{});
+  pinta("perg-avisos",((d.perguntas||{}).avisos||[]).map(x=>`<div class="erro" style="border-radius:8px;margin-bottom:10px">${esc(x)}</div>`).join(""));
+  const h=lista.length?lista.map(x=>{
+    const p=pend.get(x.id),e=envio[x.id],tipo=x.multiplas?"checkbox":"radio",nm="op-"+esc(x.id);
+    const msg=e?e.msg:p?`enviada às ${hhmm(p.enviada_em)}; o Claude vai aplicar`:"";
+    return`<form class="perg" data-id="${esc(x.id)}"><div><span class="chip">${esc(x.header||x.id)}</span><span class="mut pequeno">${esc(x.id)}${x.multiplas?" · pode marcar mais de uma":""}</span></div>
+      <div class="q">${esc(x.pergunta)}</div>${x.contexto?`<div class="ctx">${esc(x.contexto)}</div>`:""}
+      <div class="ops" role="${x.multiplas?"group":"radiogroup"}" aria-label="${esc(x.pergunta)}">
+      ${x.opcoes.map((o,i)=>`<label class="op"><input type="${tipo}" name="${nm}" value="${esc(o.rotulo)}"><span class="n">${i+1}.</span><span><b>${esc(o.rotulo)}${o.recomendada?' <span class="rec">(Recomendado)</span>':""}</b>${o.descricao?`<span class="d">${esc(o.descricao)}</span>`:""}</span></label>`).join("")}
+      <label class="op"><input type="${tipo}" name="${nm}" value="__outro"><span class="n">${x.opcoes.length+1}.</span><span style="flex:1"><b>Outro</b><span class="d">escreva a sua resposta</span><textarea maxlength="2000" rows="2" aria-label="Outro: sua resposta"></textarea></span></label></div>
+      <div class="acoes"><button class="env" type="submit"${p||(e&&e.ok)?" disabled title=\"já enviada; espere o Claude aplicar\"":""}>Enviar</button><span class="msg-envio ${e&&e.erro?"erro-envio":msg?"ok":"mut"}" role="status">${esc(msg)}</span></div></form>`}).join(""):`<section>${vazio("Nenhuma pergunta aberta.")}</section>`;
+  const el=$("perguntas");
+  if(el.dataset.h!==h){el.dataset.h=h;el.innerHTML=h;
+    for(const f of el.querySelectorAll("form")){const s=rasc[f.dataset.id];if(!s)continue;
+      f.querySelector("textarea").value=s.outro||"";
+      for(const v of s.ops){const i=[...f.querySelectorAll("input")].find(x=>x.value===v);if(i)i.checked=true}}}
+  const item=x=>`<div class="fala"><b>${esc(x.id)}</b> ${esc(hhmm(x.enviada_em))}${x.opcoes&&x.opcoes.length?" · "+esc(x.opcoes.join(", ")):x.opcao?" · ("+esc(x.opcao)+")":""}${x.outro?" · outro: "+esc(x.outro.slice(0,140)):""}${x.texto?" · "+esc(x.texto.slice(0,140)):""}</div>`;
+  pinta("respondidas",(r.pendentes.length?`<div class="lin pequeno"><b>O Claude ainda não pegou:</b>${r.pendentes.map(item).join("")}</div>`:"")
+    +(r.entregues.length?`<div class="lin pequeno"><b>Já entregues ao Claude:</b>${r.entregues.map(item).join("")}</div>`:"")||vazio("Nada respondido ainda."));
+}
+function lerForm(f){return{ops:[...f.querySelectorAll("input:checked")].map(i=>i.value),outro:f.querySelector("textarea").value}}
+for(const t of["input","change"])document.addEventListener(t,ev=>{const f=ev.target.closest("form.perg");if(!f)return;
+  if(ev.target.tagName==="TEXTAREA"&&ev.target.value){const o=f.querySelector('input[value="__outro"]');if(o)o.checked=true}
+  rasc[f.dataset.id]=lerForm(f)});
+document.addEventListener("submit",async ev=>{
+  const f=ev.target.closest("form.perg");if(!f)return;ev.preventDefault();
+  const id=f.dataset.id,v=lerForm(f),bt=f.querySelector("button"),q=listaPerguntas(dados).find(x=>x.id===id);if(!q)return;
+  const outro=v.ops.includes("__outro")?v.outro.trim():"",esc_=v.ops.filter(x=>x!=="__outro");
+  if(!esc_.length&&!outro){envio[id]={msg:v.ops.includes("__outro")?"escreva a resposta em Outro":"escolha uma opção ou escreva em Outro",erro:true};$("perguntas").dataset.h="";render();return}
+  // a do duvidas.md vai no formato de antes (letra + texto): funciona também com o servidor da versão anterior
+  let corpo;
+  if(q.fonte==="md"){const o=q.opcoes.find(o=>o.rotulo===esc_[0]);corpo={id,opcao:o?o.letra:null,texto:outro}}
+  else corpo={id,opcoes:esc_,outro};
+  bt.disabled=true;
+  try{
+    const r=await fetch("/api/responder",{method:"POST",headers:{"Content-Type":"application/json","X-Painel":"1"},body:JSON.stringify(corpo)});
+    const j=(r.headers.get("Content-Type")||"").includes("json")?await r.json():{};
+    if(r.ok){envio[id]={msg:`enviada às ${j.enviada_em}; o Claude vai aplicar`,ok:true};delete rasc[id]}
+    else envio[id]={msg:r.status===403?"sem acesso: abra de novo o endereço com a chave":(j.erro||"erro "+r.status),erro:true};
+  }catch(e){envio[id]={msg:"sem resposta do servidor",erro:true}}
+  $("perguntas").dataset.h="";render();
+});
+
+/* ---------- navegação, busca, atalhos ---------- */
+function irPara(k){if(!ABAS.some(([a])=>a===k))k="geral";aba=k;if(busca){busca="";$("busca").value=""}if(fil.tipo){fil.tipo=""}if(location.hash!==hashDe(k))history.replaceState(null,"",hashDe(k));render()}
+document.addEventListener("click",ev=>{
+  const ab=ev.target.closest("[data-aba]");if(ab){irPara(ab.dataset.aba);return}
+  const ir=ev.target.closest("[data-ir]");if(ir){ev.preventDefault();irPara(ir.dataset.ir);return}
+  if(ev.target.closest(".det"))return;const t=ev.target.closest("[data-t]");if(t){const n=+t.dataset.t;aberta=aberta===n?null:n;render()}
+});
+document.addEventListener("keydown",ev=>{
+  const tag=(ev.target.tagName||"");
+  if(ev.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(tag)){ev.preventDefault();$("busca").focus();return}
+  if(ev.key==="Escape"&&ev.target.id==="busca"){busca="";ev.target.value="";render();ev.target.blur();return}
+  if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches("[data-t]")){ev.preventDefault();ev.target.click()}
+});
+$("busca").addEventListener("input",e=>{busca=e.target.value.trim();render()});
+for(const [id,k] of[["f-estado","estado"],["f-tipo","tipo"],["f-modelo","modelo"],["f-effort","effort"],["f-wf","wf"]])$(id).addEventListener("change",e=>{fil[k]=e.target.value;render()});
+addEventListener("hashchange",()=>irPara(lerHash()));
+aba=lerHash();if(!ABAS.some(([a])=>a===aba))aba="geral";
+
+async function carregar(){
+  try{const r=await fetch("/api/estado",{cache:"no-store"});
+    if(r.status===403){$("quando").textContent="sem acesso: abra o endereço com a chave";$("ponto").className="ponto off";return}
+    dados=await r.json();render()}
+  catch(e){$("quando").textContent="sem resposta do servidor";$("ponto").className="ponto off"}
+}
+$("btn-recarregar").addEventListener("click",async e=>{
+  const b=e.currentTarget,txt="Recarregar";b.disabled=true;b.textContent="recarregando…";
+  try{const r=await fetch("/api/recarregar",{method:"POST",headers:{"X-Painel":"1"}});
+    if(!r.ok)throw new Error(r.status);
+    await carregar();setTimeout(carregar,4000);b.disabled=false;b.textContent=txt}
+  catch(err){b.textContent="erro "+(err.message||"");setTimeout(()=>{b.disabled=false;b.textContent=txt},3000)}
+});
+/* ---------- posicionar os quadros de cada aba numa grade de 3 colunas (P · M · G); guardado neste navegador ---------- */
+const QV=v=>[...v.children].filter(e=>e.tagName==="SECTION");
+const chaveQ=s=>(s.querySelector("[id]")||{}).id||s.querySelector("h2").textContent;
+/* tamanho de nascença: lista ou tabela grande = G; blocos médios = M; resumos curtos = P; o que não está aqui nasce M */
+const TAM_PADRAO={"ger-rodando":"M","previsao":"P","ger-wf":"G","tempo":"P","ger-agentes":"P","ger-tarefas":"P","ger-baterias":"P","merges":"P","ger-linhas":"M",
+  "rod-resumo":"G","rod-term":"M","agentes":"G","workflows":"G",
+  "con-limites":"M","con-sessoes":"G","con-total":"M","con-origem":"P","con-modelo":"P","con-wf":"G","worktrees":"M","avisos":"P","ambiente":"P"};
+const GRADE={},PADRAO_L={},CHAVES={},VAO=14,largo=matchMedia("(min-width:900px)");
+let salvo={v:1,vistas:{}},antigo={};
+try{const g=JSON.parse(localStorage.getItem("painel-grade"));if(g&&g.v===1&&g.vistas&&typeof g.vistas==="object")salvo=g;
+  else{const o=JSON.parse(localStorage.getItem("painel-quadros")||"{}");if(o&&typeof o==="object")antigo=o}}catch(e){}
+const gravaG=()=>{try{localStorage.setItem("painel-grade",JSON.stringify(salvo))}catch(e){}};
+const anuncia=t=>{const a=$("anuncio");a.textContent="";setTimeout(()=>{a.textContent=t},30)};
+const nomeQ=s=>s.querySelector("h2").firstChild.textContent.trim();
+const textoPos=(l,k)=>`coluna ${l[k].x+1}, linha ${l[k].y+1}, ${NOME_T[l[k].t]}`;
+function guardaQ(v){const p=ehPadrao(GRADE[v.id],PADRAO_L[v.id]);
+  if(p)delete salvo.vistas[v.id];else salvo.vistas[v.id]=GRADE[v.id];
+  v.dataset.dif=p?"":"1";gravaPadrao();gravaG()}
+function gravaPadrao(){const v=document.querySelector(".vista.on");$("ordbar").hidden=!(v&&v.dataset.dif)}
+/* põe cada quadro no DOM (ordem de leitura) e na grade (só em tela larga); botões do tamanho refletem o estado */
+function aplicaQ(v){
+  const l=GRADE[v.id],por=new Map(QV(v).map(s=>[chaveQ(s),s])),ordem=ordemLinear(l);
+  if(QV(v).map(chaveQ).join("\n")!==ordem.join("\n")){const foco=document.activeElement;for(const k of ordem)v.appendChild(por.get(k));if(foco&&foco.isConnected&&foco!==document.body)foco.focus({preventScroll:true})}
+  for(const k of ordem){const s=por.get(k),{x,y,t}=l[k],z=TAMANHOS[t];
+    s.style.gridColumn=largo.matches?`${x+1} / span ${z.w}`:"";s.style.gridRow=largo.matches?`${y+1} / span ${z.h}`:"";
+    s.dataset.t=t;for(const b of s.querySelectorAll(".tam button"))b.setAttribute("aria-pressed",String(b.dataset.t===t))}
+}
+function mudaQ(v,l,fala){GRADE[v.id]=l;aplicaQ(v);guardaQ(v);if(fala)anuncia(fala)}
+document.body.insertAdjacentHTML("beforeend",'<div id="anuncio" class="sr" role="status" aria-live="polite"></div>');
+for(const v of document.querySelectorAll(".vista")){
+  const qs=QV(v);if(qs.length<2)continue;
+  const chaves=qs.map(chaveQ);CHAVES[v.id]=chaves;v.classList.add("grade");
+  for(const s of qs){const h=s.querySelector("h2"),n=h.textContent.trim();
+    h.insertAdjacentHTML("beforeend",`<span class="ordc"><span class="tam" role="group" aria-label="Tamanho do quadro ${esc(n)}">${["P","M","G"].map(t=>`<button type="button" data-t="${t}" aria-pressed="false" title="${NOME_T[t]}">${t}</button>`).join("")}</span><button type="button" class="alca" aria-label="Posicionar o quadro ${esc(n)} na grade" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowLeft Shift+ArrowRight" title="Arrastar para posicionar. Teclado: setas movem uma célula; Shift + ← → diminuem ou aumentam o tamanho (P · M · G)">⠿</button></span>`);}
+  PADRAO_L[v.id]=autoPosicionar({},chaves,TAM_PADRAO);
+  GRADE[v.id]=Object.hasOwn(salvo.vistas,v.id)?autoPosicionar(validaGrade(salvo.vistas[v.id],chaves),chaves,TAM_PADRAO)
+    :Object.hasOwn(antigo,v.id)?migrar(antigo[v.id],chaves,TAM_PADRAO):PADRAO_L[v.id];
+  aplicaQ(v);guardaQ(v);
+}
+const vistasQ=()=>Object.keys(GRADE).map(id=>$(id));
+largo.addEventListener("change",()=>vistasQ().forEach(aplicaQ));
+document.addEventListener("click",ev=>{
+  const p=ev.target.closest(".padrao"),b=ev.target.closest(".tam button");
+  if(p){const v=document.querySelector(".vista.on");if(!v||!PADRAO_L[v.id])return;mudaQ(v,PADRAO_L[v.id],"Quadros no layout padrão");return}
+  if(b){const s=b.closest("section"),v=s.parentElement,k=chaveQ(s),l=redimensionar(GRADE[v.id],k,b.dataset.t);mudaQ(v,l,`${nomeQ(s)}: ${textoPos(l,k)}`)}});
+document.addEventListener("keydown",ev=>{
+  if(ev.key==="Escape"&&arr){fimArr(true);return}
+  const h=ev.target.closest&&ev.target.closest(".alca");if(!h||ev.altKey||ev.ctrlKey||ev.metaKey)return;
+  const s=h.closest("section"),v=s.parentElement,k=chaveQ(s),a=GRADE[v.id][k],tecla=ev.key;
+  let l=null;
+  if(ev.shiftKey&&(tecla==="ArrowLeft"||tecla==="ArrowRight"))l=redimensionar(GRADE[v.id],k,passoTamanho(a.t,tecla==="ArrowLeft"?-1:1));
+  else if(!ev.shiftKey&&tecla.startsWith("Arrow"))l=mover(GRADE[v.id],k,a.x+(tecla==="ArrowLeft"?-1:tecla==="ArrowRight"?1:0),a.y+(tecla==="ArrowUp"?-1:tecla==="ArrowDown"?1:0));
+  else return;
+  ev.preventDefault();
+  if(!largo.matches){anuncia("Tela estreita: os quadros ficam em uma coluna, sem posição");return}
+  const igual=l[k].x===a.x&&l[k].y===a.y&&l[k].t===a.t;
+  if(!igual){mudaQ(v,l);h.focus({preventScroll:true});s.scrollIntoView({block:"nearest",behavior:reduz.matches?"auto":"smooth"})}
+  anuncia(`${nomeQ(s)}: ${igual?"não dá para ir mais longe. ":""}${textoPos(l,k)}`)});
+/* arrastar: pela alça (mover); a grade de apoio e a pegada só existem enquanto se arrasta */
+let arr=null;
+function geoQ(v){const r=v.getBoundingClientRect();return{r,linha:parseFloat(getComputedStyle(v).gridAutoRows)||300,col:(r.width-2*VAO)/3}}
+function pegadaQ(arr_,x,y,t,rotulo){
+  const z=TAMANHOS[t],p=arr_.peg;p.style.gridColumn=`${x+1} / span ${z.w}`;p.style.gridRow=`${y+1} / span ${z.h}`;p.firstChild.textContent=rotulo||"";arr_.alvo={x,y,t}}
+const fimArr=cancela=>{if(!arr)return;const{s,v,m,alvo,k}=arr;arr=null;m.remove();
+  s.classList.remove("arrasta");document.body.classList.remove("arrastando");
+  if(!cancela&&alvo){
+    const l=mover(GRADE[v.id],k,alvo.x,alvo.y);
+    mudaQ(v,l,`${nomeQ(s)}: ${textoPos(l,k)}`)}};
+document.addEventListener("pointerdown",ev=>{
+  if(arr||ev.button>0||!largo.matches)return;
+  const h=ev.target.closest(".alca");if(!h)return;
+  const s=h.closest("section"),v=s.parentElement,k=chaveQ(s),g=geoQ(v),l=GRADE[v.id],
+    linhas=Math.max(...Object.values(l).map(e=>e.y+TAMANHOS[e.t].h))+2,m=document.createElement("div");
+  m.className="malha";m.setAttribute("aria-hidden","true");
+  for(let y=0;y<linhas;y++)for(let x=0;x<3;x++){const c=document.createElement("div");c.className="celula";c.style.gridColumn=x+1;c.style.gridRow=y+1;m.appendChild(c)}
+  const peg=document.createElement("div");peg.className="pegada";peg.innerHTML="<b></b>";m.appendChild(peg);v.appendChild(m);
+  const c0={cx:Math.floor((ev.clientX-g.r.left)/(g.col+VAO)),cy:Math.floor((ev.clientY-g.r.top)/(g.linha+VAO))};
+  arr={s,v,k,m,peg,id:ev.pointerId,c0,linhas,alvo:null};
+  pegadaQ(arr,l[k].x,l[k].y,l[k].t,"");arr.alvo=null;
+  h.setPointerCapture(ev.pointerId);s.classList.add("arrasta");document.body.classList.add("arrastando");ev.preventDefault()});
+document.addEventListener("pointermove",ev=>{
+  if(!arr||ev.pointerId!==arr.id)return;
+  const{s,v,k}=arr,l=GRADE[v.id],a=l[k],g=geoQ(v);
+  if(ev.clientY<70)scrollBy(0,-14);else if(ev.clientY>innerHeight-70)scrollBy(0,14);
+  const cx=Math.floor((ev.clientX-g.r.left)/(g.col+VAO)),cy=Math.floor((ev.clientY-g.r.top)/(g.linha+VAO)),z=TAMANHOS[a.t],
+    x=Math.max(0,Math.min(3-z.w,a.x+cx-arr.c0.cx)),y=Math.max(0,Math.min(arr.linhas-1,a.y+cy-arr.c0.cy));
+  pegadaQ(arr,x,y,a.t,"")});
+for(const t of["pointerup","pointercancel","lostpointercapture"])document.addEventListener(t,ev=>{if(arr&&ev.pointerId===arr.id)fimArr(t==="pointercancel")});
+
+carregar();setInterval(carregar,5000);
+</script>
+</body>
+</html>
