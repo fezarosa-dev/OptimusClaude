@@ -1,0 +1,6 @@
+{
+  "name": "painel-agentes",
+  "version": "0.1.0",
+  "description": "Painel lateral com os agentes em execução: o que cada um faz, repositório, branch, modelo, effort e contexto",
+  "types": "./types/index.d.ts"
+}

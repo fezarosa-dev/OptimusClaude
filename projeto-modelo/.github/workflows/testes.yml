@@ -1,0 +1,99 @@
+# Testes só no PR PARA A MAIN e no push da main (que publica). PR para a dev não roda: a dev é testada na
+# máquina (scripts/testar-como-o-ci.sh) antes de cada merge, e no PR dev -> main. Minuto de CI custa.
+#
+# No PR roda só o que o diff toca (o mesmo mapa da máquina: scripts/o_que_testar.py). No push da main roda tudo.
+# Forçar tudo numa branch qualquer: Actions -> testes -> Run workflow (não libera merge).
+#
+# Antes de usar: fixe cada action por SHA de commit, com a tag no comentário
+#   gh api repos/actions/checkout/git/ref/tags/v4.2.2 --jq .object.sha
+# e confira o sha256 dos binários baixados contra o checksums.txt da release.
+name: testes
+
+on:
+  pull_request:
+    branches: [main]
+    # sem `edited`: editar título ou descrição do PR não roda tudo de novo
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# token só de leitura; o job que publicar (se houver) pede o que precisa
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  origem-da-main:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: o PR para a main só sai da dev
+        env:
+          ORIGEM: ${{ github.head_ref }}   # nada do PR entra direto no run: passa por variável
+        run: |
+          if [ "$ORIGEM" != "dev" ]; then
+            echo "PR para a main só sai da dev (veio de: $ORIGEM)"
+            exit 1
+          fi
+
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4   # fixe por SHA
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # shellcheck e python3 já vêm no ubuntu-latest. Versões fixas; suba de propósito, num commit próprio.
+      - name: ferramentas
+        env:
+          GITLEAKS: "8.21.2"
+          ACTIONLINT: "1.7.4"
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS}/gitleaks_${GITLEAKS}_linux_x64.tar.gz" | tar xz -C "$HOME/bin" gitleaks
+          curl -sSfL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT}/actionlint_${ACTIONLINT}_linux_amd64.tar.gz" | tar xz -C "$HOME/bin" actionlint
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      # Acrescente aqui o setup das linguagens que o seu mapa usa (setup-python, setup-uv, setup-node...).
+
+      - name: bateria (só o diff no PR; tudo no push da main)
+        env:
+          BASE: ${{ github.base_ref }}
+          EXIGIR_TUDO: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+          REGISTRO: "0"
+        run: scripts/testar-como-o-ci.sh "origin/${BASE:-main}"
+
+  # O único check que a proteção da main exige: fica verde só se tudo o que rodou passou.
+  tudo-verde:
+    if: always()
+    needs: [origem-da-main, testes]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: todos os jobs passaram (ou não se aplicavam)
+        env:
+          RESULTADOS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTADOS; do
+            case "$r" in success|skipped) ;; *) echo "um job terminou como: $r"; exit 1 ;; esac
+          done
+
+  # Publicação (exemplo): descomente e ajuste. Só roda no push da main, depois do tudo-verde.
+  # publicar:
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   needs: [tudo-verde]
+  #   runs-on: ubuntu-latest
+  #   environment: producao
+  #   steps:
+  #     - uses: actions/checkout@v4   # fixe por SHA
+  #       with: { persist-credentials: false }
+  #     - run: ./scripts/publicar.sh
+  #       env:
+  #         TOKEN_DE_PUBLICACAO: ${{ secrets.TOKEN_DE_PUBLICACAO }}

@@ -1,0 +1,8 @@
+{
+  "name": "optimus-mods",
+  "owner": { "name": "OptimusClaude" },
+  "plugins": [
+    { "name": "status-bar", "source": "./status-bar" },
+    { "name": "painel-agentes", "source": "./painel-agentes" }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "NTFY_TOPICO": "<seu-topico-de-avisos-com-sufixo-aleatorio>",
+    "NTFY_TOPICO_PERGUNTA": "<seu-topico-de-perguntas-com-sufixo-aleatorio>",
+    "OBSIDIAN_VAULT": "<caminho-do-seu-vault-obsidian-opcional>",
+    "ENABLE_TOOL_SEARCH": "auto",
+    "SERENA_USAGE_REPORTING": "false"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
+  "language": "portuguese",
+  "model": "opus",
+  "permissions": {
+    "allow": [
+      "Bash(rtk gain:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.production)",
+      "Read(~/.ssh/**)",
+      "Read(~/.claude/.credentials.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 \"$HOME/painel-da-sessao/statusline.py\""
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "claude-security@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "context-mode@context-mode": true,
+    "ponytail@ponytail": true,
+    "insecure-defaults@trailofbits": true,
+    "watermarks-remover@watermarks-remover": true,
+    "brag@brag": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": { "source": "github", "repo": "anthropics/claude-plugins-official" }
+    },
+    "context-mode": {
+      "source": { "source": "github", "repo": "mksglu/context-mode" }
+    },
+    "ponytail": {
+      "source": { "source": "github", "repo": "DietrichGebert/ponytail" }
+    },
+    "trailofbits": {
+      "source": { "source": "github", "repo": "trailofbits/skills" }
+    },
+    "watermarks-remover": {
+      "source": { "source": "github", "repo": "guillaumemeyer/watermarks-remover" }
+    },
+    "brag": {
+      "source": { "source": "github", "repo": "latent-spaces/brag" }
+    }
+  }
+}

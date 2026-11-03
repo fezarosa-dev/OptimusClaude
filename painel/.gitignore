@@ -1,0 +1,9 @@
+# gerados na máquina: a chave do celular e o estado local nunca vão para commit
+chave.txt
+config.json
+config.json.tmp
+perguntas.json
+respostas/
+servidor.log
+servidor.pid
+__pycache__/

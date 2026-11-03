@@ -1,0 +1,1 @@
+{ "name": "status-bar", "version": "0.1.0", "description": "Linha de status: git, modelo/effort, contexto, limites 5h/semanal e tempo/tokens somando subagentes", "types": "./types/index.d.ts" }
