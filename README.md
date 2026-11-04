@@ -109,6 +109,8 @@ gastos a cada chamada.
 | `notify` | Manda aviso para o celular (ntfy) quando você pede "me avisa quando terminar" |
 | `painel` | Liga o painel da sessão para o projeto atual (`/painel`) |
 | `snote` | Salva o resumo da conversa como nota no seu vault do Obsidian (`/snote`) |
+| `commit-curto` | Mensagem de commit curta, em português, no padrão `tipo(escopo): descrição` |
+| `pr-curto` | Título e corpo de PR curtos, no template certo do projeto |
 
 **Workflows (`claude/workflows/`).** Roteiros com vários agentes, para trabalho maior.
 
@@ -153,6 +155,8 @@ o que a sessão está esperando. Os testes dele rodam com `python3 testar.py`, q
 | `scripts/noite.sh` e `scripts/noite_guarda.py` | O modo noturno: roda a fila do `TASKS.md` sozinho até esvaziar (veja [Modo noturno](#modo-noturno)) |
 | `registros/` | As provas: baterias, revisões, correções e publicações pendentes; e `padroes.md`, as lições das revisões que todo agente lê antes de implementar |
 | `.github/workflows/testes.yml` | O CI, que roda só no PR para a `main` e no push da `main` |
+| `.github/PULL_REQUEST_TEMPLATE/` | Templates de PR: `padrao`, `publicacao` (dev → main) e `correcao-urgente` |
+| `.githooks/commit-msg` | Recusa commit fora de `tipo(escopo): descrição` ou com autoria de IA. Ligar: `git config core.hooksPath .githooks` |
 | `.claude/skills/` | `publicar` (da `dev` até a produção), `aplicar-migration` (mudança de banco testada com rollback) e `conferir-producao` (ver se a produção está saudável) |
 
 ### Glossário rápido
@@ -240,7 +244,7 @@ OptimusClaude/
 │   ├── CLAUDE.md       regras globais: o método, escrito como instrução ao Claude
 │   ├── RTK.md          instruções do rtk, importadas pelo CLAUDE.md
 │   ├── agents/         runner, searcher, editor, researcher, doc-writer (cada um com o mínimo de tools)
-│   ├── skills/         notify, painel, preflight, session-handoff, snote
+│   ├── skills/         notify, painel, preflight, session-handoff, snote, commit-curto, pr-curto
 │   ├── workflows/      fazer-revisar-corrigir.js, revisao-profunda.js
 │   ├── hooks/          ler arquivo grande, só subagente edita, aviso de contexto baixo
 │   ├── commands/       /stop
@@ -358,7 +362,8 @@ na mesma rede. Detalhes em [painel/README.md](painel/README.md).
 ```bash
 cp -r ~/caminho/para/OptimusClaude/projeto-modelo/. ~/meu-projeto/
 cd ~/meu-projeto
-git init -b main && git add -A && git commit -m "chore: projeto a partir do modelo"
+git init -b main && git config core.hooksPath .githooks       # commit fora do padrão é recusado
+git add -A && git commit -m "chore: projeto a partir do modelo"
 git checkout -b dev
 python3 -I -m unittest discover -s scripts -p 'test_*.py'   # os scripts do modelo se testam
 scripts/testar-como-o-ci.sh                                 # a bateria, só do que mudou

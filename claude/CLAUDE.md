@@ -39,7 +39,7 @@ Estas regras valem para todo projeto. O `CLAUDE.md` de cada projeto manda no dom
 
 # Branches, testes e CI
 
-- Toda mudança nasce numa branch `feat/`, `fix/`, `docs/` ou `ci/` tirada da `dev` atualizada. Um commit por subtarefa, em português, no formato `tipo(escopo): descrição`. Nunca reescreva histórico que já subiu.
+- Toda mudança nasce numa branch `feat/`, `fix/`, `docs/` ou `ci/` tirada da `dev` atualizada. Um commit por subtarefa, em português, no formato `tipo(escopo): descrição`, escrito pela skill `commit-curto` (curto, verbo no presente, até 72 caracteres, corpo só quando o porquê não é óbvio). Título e corpo de PR pela skill `pr-curto`, no template do projeto. Projeto com `.githooks/`: `git config core.hooksPath .githooks` liga o hook que recusa mensagem fora do padrão. Nunca reescreva histórico que já subiu.
 - Antes de todo merge local na `dev` (e de todo PR para a `dev`), rodo na máquina os testes do que mudou, do mesmo jeito que o CI rodaria (o comando que o `CLAUDE.md` do projeto indicar). Se falhar, não junto. Suíte inteira só quando o projeto mandar (ex.: antes do PR para a `main`) ou quando o mapa não souber o que o arquivo mudado afeta; no dia a dia, só o diff.
 - No GitHub os testes rodam só no PR para a `main` (e no push da `main`, que publica). Não disparar CI para a `dev` nem rodar o workflow à mão sem motivo: minuto de Actions custa. Junte os commits antes de dar push num PR aberto; não rode de novo um CI que falhou sem corrigir a causa.
 - A `main` só recebe PR vindo da `dev`, com tudo pronto e testado. Nunca contornar proteção de branch (`--admin`, push direto, desligar regra). Se travar, pare e avise.

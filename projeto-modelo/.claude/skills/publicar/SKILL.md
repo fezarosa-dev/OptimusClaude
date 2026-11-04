@@ -32,7 +32,7 @@ integração terminar: todas as branches juntas na `dev`, conflitos resolvidos, 
 5. **Volta pronta:** cada migration da leva tem o desfazer escrito e ensaiado; anote a última versão de migration que já
    está em produção (só o número).
 6. **PR:** `git push origin dev` e `gh pr create --base main --head dev`, com título e corpo **prontos antes** (editar o
-   PR depois dispara outra rodada de CI). O corpo é o `docs/publicacao-pendente.md` mais "como voltar". Sem nenhuma linha
+   PR depois dispara outra rodada de CI). Título `chore(publicacao): AAAA-MM-DD` e corpo pelo template `.github/PULL_REQUEST_TEMPLATE/publicacao.md` (skill `pr-curto`): o `docs/publicacao-pendente.md`, a garantia, as migrations e "como voltar". Confira que o título passa no padrão de commit. Sem nenhuma linha
    de autoria de IA. Se já houver PR `dev → main` aberto por outra pessoa, pergunte antes de dar push nele.
 7. **CI:** `gh pr checks <n> --watch`. Tudo verde, menos o que depende das migrations (se houver um check assim). Falhou:
    `gh run view <id> --log-failed`, corrija pela `fix/` → `dev` → push. Nunca reexecute sem corrigir a causa.
