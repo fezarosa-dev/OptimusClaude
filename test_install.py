@@ -1,5 +1,6 @@
 """Testes do install.py: HOME temporário, sem rede, sem claude/npm/uv no PATH.  python3 -m unittest test_install -v"""
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -196,6 +197,44 @@ class TestInstall(Base):
     def test_opcao_desconhecida(self):
         cod, _ = self.rodar("--nao-existe")
         self.assertEqual(cod, 2)
+
+
+class SkillsDeTerceiros(Base):
+    """O instalador instala as skills de terceiros que o método usa (npx skills add), pulando as que já existem."""
+
+    def npx_falso(self):
+        log = self.vazio / "npx.log"
+        npx = self.vazio / "npx"
+        npx.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\n')
+        npx.chmod(0o755)
+        return log
+
+    @unittest.skipIf(os.name == "nt", "npx falso é script sh")
+    def test_instala_as_que_faltam_e_pula_as_que_existem(self):
+        log = self.npx_falso()
+        (self.home / ".claude" / "skills" / "grilling").mkdir(parents=True)
+        cod, out = self.rodar()
+        self.assertEqual(cod, 0)
+        chamadas = log.read_text().splitlines()
+        alvos = {c.split()[3] for c in chamadas}
+        self.assertIn("mattpocock/skills@grill-me", alvos)
+        self.assertIn("microsoft/playwright-cli@playwright-cli", alvos)
+        self.assertNotIn("mattpocock/skills@grilling", alvos)
+        self.assertTrue(all(c.startswith("-y skills add ") and c.endswith(" -g -y") for c in chamadas), chamadas)
+        self.assertIn("ok       skill grilling", out)
+
+    @unittest.skipIf(os.name == "nt", "npx falso é script sh")
+    def test_dry_run_e_sem_skills_nao_chamam_npx(self):
+        log = self.npx_falso()
+        cod, out = self.rodar("--dry-run")
+        self.assertFalse(log.exists())
+        self.assertIn("[dry-run] npx -y skills add mattpocock/skills@grill-me -g -y", out)
+        cod, out = self.rodar("--sem-skills")
+        self.assertFalse(log.exists())
+
+    def test_sem_npx_vira_falta_fazer(self):
+        cod, out = self.rodar()
+        self.assertIn("npx -y skills add mattpocock/skills@grill-me -g -y", out.split("Falta fazer")[-1])
 
 
 if __name__ == "__main__":
