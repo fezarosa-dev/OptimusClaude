@@ -36,7 +36,7 @@ Notas:
 2. Acrescente a verificação em `VERIFICACOES` (os programas de que precisa e o comando) e os caminhos no `MAPA` do
    `scripts/o_que_testar.py`. Um teste em `scripts/test_scripts.py` garante que todo passo do mapa existe.
 3. No `.github/workflows/testes.yml`, acrescente o setup da linguagem (com versão fixa).
-4. Rode `SO_DECIDIR=1 scripts/testar-como-o-ci.sh` para ver o mapa ligar o passo, e a bateria para ver passar.
+4. Rode `SO_DECIDIR=1 python3 scripts/testar_como_o_ci.py` para ver o mapa ligar o passo, e a bateria para ver passar.
 5. **Navegação:** o Serena cobre por LSP dezenas de linguagens (Go, Rust, Java, Kotlin, C#, C/C++, Ruby, PHP, Elixir,
    Swift...). Se a sua não estiver ativa, ligue o servidor de linguagem no Serena; o `ccc` indexa qualquer texto.
 

@@ -234,7 +234,7 @@ def agentes_e_workflows(cfg, sd):
 def baterias(cfg, wts):
     agora = time.time()
     cache = os.path.expanduser(cfg["cache"])
-    bateria_cmd, cadeia_cmd = cfg.get("bateria_comando") or "testar-como-o-ci.sh", cfg.get("bateria_cadeia") or "encadear-baterias"
+    bateria_cmd, cadeia_cmd = cfg.get("bateria_comando") or "testar_como_o_ci.py", cfg.get("bateria_cadeia") or "encadear-baterias"
     wt_raiz = (cfg.get("worktrees") or "/nenhum").rstrip("/") + "/"
     padrao = cfg.get("bateria_logs") or "bateria-*.log"
     pre, _, suf = padrao.partition("*")

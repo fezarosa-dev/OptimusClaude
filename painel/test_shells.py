@@ -20,7 +20,7 @@ class Comando(unittest.TestCase):
         self.assertEqual(sh.extrair_comando(SNAP + "eval 'echo '\"'\"'oi'\"'\"''" + FIM), "echo 'oi'")
 
     def test_sem_aspas(self):
-        self.assertEqual(sh.extrair_comando(SNAP + "eval /x/esperar-resposta.sh" + FIM), "/x/esperar-resposta.sh")
+        self.assertEqual(sh.extrair_comando(SNAP + "eval /x/esperar_resposta.py" + FIM), "/x/esperar_resposta.py")
 
     def test_varias_linhas_e_eval_dentro_do_comando(self):
         self.assertEqual(sh.extrair_comando(SNAP + "eval 'a\neval b'" + FIM), "a\neval b")
@@ -106,7 +106,7 @@ class Mascara(unittest.TestCase):
 
     def test_texto_comum_fica(self):
         for t in ("git checkout -b feat/x", "git push -u origin dev", "ls -la /tmp", "mkdir -p /tmp/x", "tar -xzf a.tgz",
-                  "grep -rn foo .", "ps -u root", "cd /x/wt/t140 && scripts/testar-como-o-ci.sh", "feat/t140-assistente", "saida=0",
+                  "grep -rn foo .", "ps -u root", "cd /x/wt/t140 && scripts/testar_como_o_ci.py", "feat/t140-assistente", "saida=0",
                   "6e81ff34-0b44-4d05-af57-110c155da013", "a" * 10 + " " + "1793434817", "d0f8a8f1c5d0e5b7a1c2d3e4f5a6b7c8d9e0f1a2"):
             self.assertEqual(sh.mascarar(t), t)
 
@@ -148,12 +148,12 @@ class LerJsonl(unittest.TestCase):
             f.write("".join(ls))
 
     def test_task_id_para_descricao_e_comando(self):
-        self.grava(uso("u1", "Rodar a bateria da T140", "scripts/testar-como-o-ci.sh"), resultado("u1", "bab12cd"),
+        self.grava(uso("u1", "Rodar a bateria da T140", "scripts/testar_como_o_ci.py"), resultado("u1", "bab12cd"),
                    uso("u2", "ls rápido", "ls", bg=False), linha({"type": "summary"}))
         est = sh.ler_shells(None, self.arq)
         self.assertEqual(set(est["tasks"]), {"bab12cd"})
         t = est["tasks"]["bab12cd"]
-        self.assertEqual((t["descricao"], t["comando"]), ("Rodar a bateria da T140", "scripts/testar-como-o-ci.sh"))
+        self.assertEqual((t["descricao"], t["comando"]), ("Rodar a bateria da T140", "scripts/testar_como_o_ci.py"))
         self.assertGreater(t["inicio"], 0)
 
     def test_notificacoes(self):

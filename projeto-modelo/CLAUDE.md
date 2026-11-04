@@ -47,7 +47,7 @@ _A árvore de pastas de primeiro nível, com uma linha cada._
 <pasta>/        <o que é>
 docs/           referência e histórico (não é regra vigente)
 registros/      registros de garantia (baterias, revisões, correções)
-scripts/        testar-como-o-ci.sh, o_que_testar.py, registros/
+scripts/        testar_como_o_ci.py, o_que_testar.py, registros/
 ```
 
 ### Regras da estrutura
@@ -73,9 +73,9 @@ merge → produção.
   travar, pare e avise.
 - **Toda mudança nasce numa branch** `feat/`, `fix/`, `docs/` ou `ci/`, tirada da `dev` atualizada. Um commit por
   subtarefa, `tipo(escopo): descrição` em <idioma>. Nunca reescreva histórico que já subiu.
-- **Juntar na `dev`:** antes, `scripts/testar-como-o-ci.sh` na máquina (o mesmo mapa do CI, só o que o diff toca). Se
+- **Juntar na `dev`:** antes, `python3 scripts/testar_como_o_ci.py` na máquina (o mesmo mapa do CI, só o que o diff toca). Se
   falhar, não junta. `git pull` antes, `merge --no-ff`, `git push` logo depois.
-- **Publicar:** skill `publicar`. Antes do PR, `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh` na `dev`, **sem nada
+- **Publicar:** skill `publicar`. Antes do PR, `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` na `dev`, **sem nada
   PULADO**, e as revisões de segurança do diff. Migrations depois do CI verde e antes do merge. Nesse PR, **nunca**
   `--delete-branch` (apagaria a `dev`). Quem decide o merge é quem pediu a publicação.
 - **O CI roda só no PR para a `main` e no push da `main`.** PR para a `dev` não roda: minuto de CI custa. Atualize título e

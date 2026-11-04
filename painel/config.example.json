@@ -19,7 +19,7 @@
   "arquivo_publicacao": "docs/publicacao-pendente.md",
   "secao_avisos": "## Avisar",
   "registros_baterias": "registros/baterias",
-  "bateria_comando": "testar-como-o-ci.sh",
+  "bateria_comando": "testar_como_o_ci.py",
   "bateria_cadeia": "encadear-baterias",
   "bateria_logs": "bateria-*.log",
   "testes_de_tela_total": 0,

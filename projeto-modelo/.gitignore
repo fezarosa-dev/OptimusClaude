@@ -21,3 +21,5 @@ coverage/
 # sessão do Claude: configuração local e MCP de cada um
 .claude/settings.local.json
 .mcp.json
+# estado local de ferramentas (Serena)
+.serena/

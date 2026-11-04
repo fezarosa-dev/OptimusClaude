@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Hook commit-msg do git: recusa mensagem fora do padrão do projeto.
+
+Assunto: tipo(escopo): descrição   (escopo opcional; "!" antes dos dois-pontos marca quebra de compatibilidade)
+Tipos: feat fix docs test refactor perf build ci chore style revert. Até 72 caracteres, sem ponto final.
+Corpo (opcional) separado do assunto por uma linha em branco. Nenhuma autoria de IA (Co-Authored-By de IA,
+"Generated with"). Merge, revert, fixup! e squash! gerados pelo git passam.
+Ligar no clone: git config core.hooksPath .githooks
+"""
+import re
+import sys
+
+TIPOS = "feat|fix|docs|test|refactor|perf|build|ci|chore|style|revert"
+ASSUNTO = re.compile(rf"^({TIPOS})(\([a-z0-9._/-]+\))?!?: \S")
+GERADO = re.compile(r"^(Merge |Revert \"|fixup! |squash! |amend! )")
+IA = re.compile(r"co-authored-by:.*(claude|anthropic|copilot|chatgpt|openai|gemini|cursor)|generated with|gerado (com|pelo|por) (o )?(claude|ia\b)",
+                re.IGNORECASE)
+
+
+def problemas(texto):
+    linhas = [l for l in texto.splitlines() if not l.startswith("#")]
+    while linhas and not linhas[0].strip():
+        linhas.pop(0)
+    if not linhas:
+        return ["mensagem vazia"]
+    assunto, erros = linhas[0], []
+    if GERADO.match(assunto):
+        return []
+    if not ASSUNTO.match(assunto):
+        erros.append(f"assunto fora do padrão 'tipo(escopo): descrição' (tipos: {TIPOS.replace('|', ' ')})")
+    if len(assunto) > 72:
+        erros.append(f"assunto com {len(assunto)} caracteres (máximo 72)")
+    if assunto.rstrip().endswith("."):
+        erros.append("assunto termina com ponto")
+    if len(linhas) > 1 and linhas[1].strip():
+        erros.append("falta a linha em branco entre o assunto e o corpo")
+    if any(IA.search(l) for l in linhas):
+        erros.append("autoria de IA na mensagem (Co-Authored-By de IA ou 'Generated with'): tire")
+    return erros
+
+
+def main():
+    try:
+        with open(sys.argv[1], encoding="utf-8") as f:
+            erros = problemas(f.read())
+    except (IndexError, OSError) as e:
+        print(f"commit-msg: não consegui ler a mensagem ({e})", file=sys.stderr)
+        return 1
+    for e in erros:
+        print(f"commit recusado: {e}", file=sys.stderr)
+    if erros:
+        print("exemplo: fix(relatorio): corrige total do mês com fuso", file=sys.stderr)
+    return 1 if erros else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

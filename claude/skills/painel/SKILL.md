@@ -22,7 +22,7 @@ algo mudou e imprime as URLs. Mostre ao usuário as duas linhas: `PC` e `celular
 Se a espera ainda não está rodando nesta sessão, ligue em segundo plano (Bash `run_in_background`):
 
 ```bash
-~/painel-da-sessao/esperar-resposta.sh
+python3 ~/painel-da-sessao/esperar_resposta.py
 ```
 
 Quando sair com `RESPOSTA <json>`: aplique a resposta, registre onde o projeto registra decisões (ex.: `duvidas.md`),

@@ -23,7 +23,7 @@ custou caro.
   SESSÃO PRINCIPAL (verificação)
    │  5. confere o vermelho: o teste novo roda contra o código antigo e falha
    │  6. um commit por subtarefa
-   │  7. bateria na máquina, só do diff (scripts/testar-como-o-ci.sh)   sem verde, não junta
+   │  7. bateria na máquina, só do diff (python3 scripts/testar_como_o_ci.py)   sem verde, não junta
    │  8. git pull, merge --no-ff na dev, git push
    │  9. TASKS.md, duvidas.md, publicacao-pendente.md e registros/ em dia
    │ 10. apaga o worktree e a branch
@@ -100,7 +100,7 @@ outra revisão acontece.
 1. **Conferir o vermelho:** roda o teste novo contra o código antigo (um worktree destacado na base) e vê falhar. Teste que
    não falharia sem a mudança não prova nada.
 2. **Um commit por subtarefa**, `tipo(escopo): descrição`, sem autoria de IA.
-3. **Bateria na máquina, só do diff:** `scripts/testar-como-o-ci.sh` (base `dev`). Ele usa o **mesmo mapa** do CI e roda
+3. **Bateria na máquina, só do diff:** `python3 scripts/testar_como_o_ci.py` (base `dev`). Ele usa o **mesmo mapa** do CI e roda
    só o que o diff toca. Vermelho: não junta. Depois do conserto, roda só o que o conserto tocou mais o teste que caiu
    (`ARQUIVOS=<lista>`), não a bateria inteira de novo.
 4. **Juntar:** `git pull` da `dev` (com merge local ainda não enviado: `git pull --rebase=merges`, nunca `--rebase` puro,
@@ -121,7 +121,7 @@ Só com o seu pedido de publicar, e só com **tudo** pronto: todas as branches e
 resolvidos, testes verdes. Nunca a `dev` parcial. A ordem (skill `publicar` do `projeto-modelo/`):
 
 1. A `main` junta na `dev`.
-2. **Bateria completa na máquina, sem nada pulado:** `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh`. Testes de tela
+2. **Bateria completa na máquina, sem nada pulado:** `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py`. Testes de tela
    completos só aqui (no dia a dia, só os do diff). O PR não pode ser o primeiro lugar onde um teste roda.
 3. **Revisões de segurança do diff** `main...dev`: `/security-review`, Claude Security (modo "scan changes"), semgrep,
    `insecure-defaults:audit`. Achado confirmado bloqueia e vira correção pelo caminho normal. O que gasta licença roda só
