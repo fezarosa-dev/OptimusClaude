@@ -16,6 +16,7 @@ Estas regras valem para todo projeto. O `CLAUDE.md` de cada projeto manda no dom
 
 - Antes de implementar tarefa não trivial, use a skill `preflight`.
 - Antes de qualquer tarefa, confira a listagem de skills disponíveis e use/combine as que se aplicarem; se nenhuma cobrir, use `find-skills` para buscar e sugerir instalação.
+- **Todo pedido novo começa pela skill `grilling`** (o usuário também pode chamar `/grill-me`), antes de `preflight`, plano ou código. Rode ela mesmo que o pedido pareça claro: levante os fatos você mesmo, monte a árvore de decisões que são do usuário e pergunte em rodadas, cada pergunta com a sua resposta recomendada, até não sobrar decisão suposta em silêncio. Se a árvore sair vazia (pedido sem nenhuma decisão do usuário, como "roda os testes" ou "corrige este typo"), diga isso numa linha e siga. Pedido urgente ou com o usuário fora: decida pela recomendação, registre no `duvidas.md` como "para confirmar" e siga.
 - Em toda tarefa de código (feature, bugfix, refactor), use `verification-before-completion` antes de declarar o trabalho concluído, corrigido ou passando.
 - Verifique se a linguagem, biblioteca ou framework já oferece a solução. Não adicione dependência sem justificativa.
 - Alterações pequenas e relacionadas à tarefa. Implemente tudo o que foi pedido: nada fica para depois em silêncio, e só se mexe no que foi definido.

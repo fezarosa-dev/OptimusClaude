@@ -78,6 +78,7 @@ modelo.
 | **Difícil** (escolha de desenho importante) | Um conselho de modelos (skill `llm-council`), e você confirma | Entra no `duvidas.md` como "decidido pelo conselho, para confirmar" |
 | **Permissão** (publicar, mexer em produção, apagar algo) | Sempre você | Nada disso acontece sem o seu OK |
 | **O que só você sabe** (regra de negócio, prioridade, opções que mudam o produto) | Você | Vai para o `duvidas.md` com as opções e uma recomendação |
+| **As decisões em aberto de cada pedido** | Você, numa entrevista | Todo pedido novo começa pela skill `grilling` (ou você chama `/grill-me`): o Claude pergunta em rodadas, sempre com a resposta que recomenda, até não sobrar decisão suposta. Pedido sem decisão sua (rodar testes, corrigir um typo) passa direto |
 
 Uma pergunta para você não para o trabalho todo: só a tarefa que depende dela fica esperando, e o resto segue. Pergunta
 urgente chega no celular (ntfy) e pode ser respondida pela aba Perguntas do painel. As outras você resolve de uma vez
@@ -479,6 +480,8 @@ Este repositório é cola e método. O trabalho pesado é de projetos de terceir
   security-guidance e outros.
 - [ponytail](https://github.com/DietrichGebert/ponytail): modo "dev sênior preguiçoso".
 - [Trail of Bits skills](https://github.com/trailofbits/skills): `insecure-defaults`.
+- [mattpocock/skills](https://github.com/mattpocock/skills): `grill-me` e `grilling`, a entrevista que fecha as decisões
+  em aberto.
 - [uv](https://docs.astral.sh/uv/), [gitleaks](https://github.com/gitleaks/gitleaks),
   [semgrep](https://semgrep.dev), [GitHub CLI](https://cli.github.com) e [ntfy](https://ntfy.sh).
 

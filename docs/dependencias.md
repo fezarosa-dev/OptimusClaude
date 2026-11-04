@@ -77,6 +77,7 @@ Instale pela fonte de cada uma. Para pacotes de skills soltas (sem marketplace),
 | `caveman`, `ultracave`, `megacave`, `caveman-*`, `investigate-first`, `lean-build`, `migration`, `safe-refactor`, `surgical-patch`, `verify-and-stop` | pacote do caveman (`@caveman-ai/cli`: `caveman skills install`) | Respostas terse; disciplinas de investigar antes, patch cirúrgico, refatoração segura, verificar e parar | obrigatória (`caveman`) |
 | `ccc` | cocoindex-code | Como usar a busca semântica | obrigatória |
 | `find-skills` | ecossistema `skills` (`npx skills`) | Achar skill que cubra a tarefa | recomendada |
+| `grill-me` e `grilling` | [mattpocock/skills](https://github.com/mattpocock/skills): `npx skills add mattpocock/skills@grill-me -g -y` e `npx skills add mattpocock/skills@grilling -g -y` (o `grill-me` só chama o `grilling`, por isso as duas) | Entrevistar você sobre um pedido vago ou um plano com decisões em aberto, até não sobrar nada suposto | obrigatória |
 | `test-driven-development`, `verification-before-completion` e demais de processo | plugin `superpowers` (acima) | TDD e verificação antes de declarar pronto | obrigatória |
 | `code-ultrareview` | coroboros (MIT) | Revisão do diff em oito eixos | opcional |
 | `firecrawl*` | https://github.com/firecrawl/skills e `firecrawl/firecrawl-workflows` | Pesquisa e extração da web | opcional |
