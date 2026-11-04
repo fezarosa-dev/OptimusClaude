@@ -1,0 +1,33 @@
+name: Ideia
+description: Proponha uma melhoria ou um recurso novo
+title: "ideia: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema que resolve
+      description: O que está difícil ou faltando hoje?
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+      description: O que você sugere, em poucas frases.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+  - type: dropdown
+    id: pr
+    attributes:
+      label: Você faria o PR?
+      options:
+        - Sim
+        - Talvez, com orientação
+        - Não
+    validations:
+      required: true

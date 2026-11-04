@@ -5,3 +5,6 @@ backups/
 # python
 __pycache__/
 *.pyc
+
+# worktrees dos agentes (isolation: "worktree")
+.claude/worktrees/
