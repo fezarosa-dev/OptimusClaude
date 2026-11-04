@@ -1,3 +1,7 @@
 # locais: backup da config do Claude (dados da conta) e estado da Serena
 backups/
 .serena/
+
+# python
+__pycache__/
+*.pyc

@@ -1,7 +1,7 @@
 # Economia de tokens
 
 Cada byte que entra na conversa é relido a cada resposta. A regra é uma só: **o que é bruto fica fora do contexto; entra só
-a resposta.** As ferramentas abaixo fazem isso em camadas, e o `install.sh` deixa todas ligadas (lista e licenças em
+a resposta.** As ferramentas abaixo fazem isso em camadas, e o `install.py` deixa todas ligadas (lista e licenças em
 [dependencias.md](dependencias.md)).
 
 ## As ferramentas

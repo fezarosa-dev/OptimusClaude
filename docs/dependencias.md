@@ -1,6 +1,6 @@
 # Dependências
 
-O que esta configuração usa, para que serve no fluxo, como instalar e se é obrigatória. O `install.sh` checa tudo isto e instala o que tem instalador seguro (`uv tool`, `npm -g`, `claude plugin`); o resto ele lista no fim, com o comando.
+O que esta configuração usa, para que serve no fluxo, como instalar e se é obrigatória. O `install.py` (chamado por `install.sh` e `install.ps1`) checa tudo isto e instala só o que tem instalador seguro (`uv tool`, `npm -g`, `claude plugin`); o resto (inclusive git, node, uv, e o pipx quando falta o uv) ele só sugere no fim, com o comando do seu sistema (`winget` no Windows).
 
 Legenda: **obrigatória** = as regras do `CLAUDE.md` contam com ela; **recomendada** = parte do fluxo fica capenga sem ela; **opcional** = só para quem usa aquilo.
 
@@ -18,7 +18,7 @@ Legenda: **obrigatória** = as regras do `CLAUDE.md` contam com ela; **recomenda
 | Serena (`serena-agent`) | MCP de navegação e edição por símbolo (`find_symbol`, `replace_symbol_body`), no lugar de ler arquivo inteiro | `uv tool install serena-agent` e `claude mcp add -s user serena -- serena start-mcp-server --context claude-code --project-from-cwd` | obrigatória |
 | ccc (`cocoindex-code`) | Busca semântica no código (`ccc search`); `ccc init` e `ccc index` em cada projeto novo | `uv tool install cocoindex-code` | obrigatória |
 | gh | PRs, CI e issues pelo terminal | https://cli.github.com | recomendada |
-| jq | `install.sh --mesclar-settings` e a checagem do hook do rtk | gerenciador de pacotes do sistema | recomendada |
+| jq | Inspecionar JSON no terminal (o instalador não depende dele) | gerenciador de pacotes do sistema | recomendada |
 | curl | Avisos pelo ntfy.sh (skill `notify` e aviso antes de pergunta) | gerenciador de pacotes do sistema | recomendada |
 | gitleaks | Varredura de segredos antes de commit/PR | https://github.com/gitleaks/gitleaks | recomendada |
 | semgrep | Análise estática (skill `semgrep`, revisão de segurança) | `uv tool install semgrep` | opcional |
@@ -28,13 +28,13 @@ Legenda: **obrigatória** = as regras do `CLAUDE.md` contam com ela; **recomenda
 
 | MCP | Para que serve | Como ligar | |
 |---|---|---|---|
-| serena | Símbolos do código (ver acima) | `claude mcp add` (o `install.sh` faz) | obrigatória |
+| serena | Símbolos do código (ver acima) | `claude mcp add` (o `install.py` faz) | obrigatória |
 | context-mode | Roda comandos e processa saída grande num sandbox; só o resultado entra no contexto (`ctx_execute`, `ctx_batch_execute`, `ctx_search`) | vem com o plugin `context-mode@context-mode` | obrigatória |
 | caveman | Recupera o original de saídas comprimidas | `caveman mcp` (veja `caveman help tools`) | opcional |
 
 ## Plugins do Claude Code
 
-Os marketplaces estão em `extraKnownMarketplaces` do `settings.example.json`; o `install.sh` roda `claude plugin marketplace add` e `claude plugin install` para cada um.
+Os marketplaces estão em `extraKnownMarketplaces` do `settings.example.json`; o `install.py` roda `claude plugin marketplace add` e `claude plugin install` para cada um.
 
 | Plugin | Marketplace (`claude plugin marketplace add`) | Para que serve | |
 |---|---|---|---|
@@ -77,6 +77,7 @@ Instale pela fonte de cada uma. Para pacotes de skills soltas (sem marketplace),
 | `caveman`, `ultracave`, `megacave`, `caveman-*`, `investigate-first`, `lean-build`, `migration`, `safe-refactor`, `surgical-patch`, `verify-and-stop` | pacote do caveman (`@caveman-ai/cli`: `caveman skills install`) | Respostas terse; disciplinas de investigar antes, patch cirúrgico, refatoração segura, verificar e parar | obrigatória (`caveman`) |
 | `ccc` | cocoindex-code | Como usar a busca semântica | obrigatória |
 | `find-skills` | ecossistema `skills` (`npx skills`) | Achar skill que cubra a tarefa | recomendada |
+| `grill-me` e `grilling` | [mattpocock/skills](https://github.com/mattpocock/skills): `npx skills add mattpocock/skills@grill-me -g -y` e `npx skills add mattpocock/skills@grilling -g -y` (o `grill-me` só chama o `grilling`, por isso as duas) | Entrevistar você sobre um pedido vago ou um plano com decisões em aberto, até não sobrar nada suposto | obrigatória |
 | `test-driven-development`, `verification-before-completion` e demais de processo | plugin `superpowers` (acima) | TDD e verificação antes de declarar pronto | obrigatória |
 | `code-ultrareview` | coroboros (MIT) | Revisão do diff em oito eixos | opcional |
 | `firecrawl*` | https://github.com/firecrawl/skills e `firecrawl/firecrawl-workflows` | Pesquisa e extração da web | opcional |
@@ -89,4 +90,4 @@ As skills de design de interface e animação (`emil-design-eng`, `animate`, `re
 
 ## Mods de interface (do repositório)
 
-`claude/mods/` (`status-bar` e `painel-agentes`) são plugins locais deste repositório, não dependência externa: o `install.sh` copia para `~/.claude/mods`, registra o marketplace local `optimus-mods` e instala os dois. Veja `claude/mods/README.md`.
+`claude/mods/` (`status-bar` e `painel-agentes`) são plugins locais deste repositório, não dependência externa: o `install.py` copia para `~/.claude/mods`, registra o marketplace local `optimus-mods` e instala os dois. Veja `claude/mods/README.md`.

@@ -41,15 +41,15 @@ Não adicione dependência só para testar sem combinar antes.
 
 ## Testar como o CI, na máquina, só do diff
 
-`scripts/testar-como-o-ci.sh` (no `projeto-modelo/`) roda na máquina **o que o CI rodaria para o que mudou**, pelo mesmo
+`python3 scripts/testar_como_o_ci.py` (no `projeto-modelo/`) roda na máquina **o que o CI rodaria para o que mudou**, pelo mesmo
 mapa que o CI usa (`scripts/o_que_testar.py`: caminho → verificações). Caminho que o mapa não conhece roda tudo.
 
 | Comando | Quando |
 |---|---|
-| `scripts/testar-como-o-ci.sh` | Antes de todo merge na `dev`: o diff contra a `dev`, mais o não commitado e os arquivos novos |
-| `ARQUIVOS=lista.txt scripts/testar-como-o-ci.sh` | Depois de um conserto: só os arquivos do conserto |
-| `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh` | Antes do PR para a `main`: tudo, e `PULADO` também reprova |
-| `SO_DECIDIR=1 scripts/testar-como-o-ci.sh` | Ver o que rodaria, sem rodar |
+| `python3 scripts/testar_como_o_ci.py` | Antes de todo merge na `dev`: o diff contra a `dev`, mais o não commitado e os arquivos novos |
+| `ARQUIVOS=lista.txt python3 scripts/testar_como_o_ci.py` | Depois de um conserto: só os arquivos do conserto |
+| `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` | Antes do PR para a `main`: tudo, e `PULADO` também reprova |
+| `SO_DECIDIR=1 python3 scripts/testar_como_o_ci.py` | Ver o que rodaria, sem rodar |
 
 - A bateria **não para na primeira falha**: roda todos os passos e marca `OK`, `FALHOU` ou `PULADO` (programa que falta).
 - **Bateria só do que falhou:** com o conserto feito, rode só o que ele tocou (`ARQUIVOS=`) mais o próprio teste que caiu.

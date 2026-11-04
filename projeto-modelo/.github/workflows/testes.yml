@@ -1,5 +1,5 @@
 # Testes só no PR PARA A MAIN e no push da main (que publica). PR para a dev não roda: a dev é testada na
-# máquina (scripts/testar-como-o-ci.sh) antes de cada merge, e no PR dev -> main. Minuto de CI custa.
+# máquina (scripts/testar_como_o_ci.py) antes de cada merge, e no PR dev -> main. Minuto de CI custa.
 #
 # No PR roda só o que o diff toca (o mesmo mapa da máquina: scripts/o_que_testar.py). No push da main roda tudo.
 # Forçar tudo numa branch qualquer: Actions -> testes -> Run workflow (não libera merge).
@@ -68,7 +68,7 @@ jobs:
           BASE: ${{ github.base_ref }}
           EXIGIR_TUDO: ${{ github.event_name == 'pull_request' && '0' || '1' }}
           REGISTRO: "0"
-        run: scripts/testar-como-o-ci.sh "origin/${BASE:-main}"
+        run: python3 scripts/testar_como_o_ci.py "origin/${BASE:-main}"
 
   # O único check que a proteção da main exige: fica verde só se tudo o que rodou passou.
   tudo-verde:

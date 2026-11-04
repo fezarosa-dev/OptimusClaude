@@ -30,7 +30,7 @@ celular: http://192.168.0.10:8765/?chave=...
 Outros comandos, sempre de dentro da pasta do painel:
 
 ```bash
-./iniciar.sh                      # sobe em segundo plano (se já não estiver no ar) e mostra os endereços
+python3 iniciar.py                      # sobe em segundo plano (se já não estiver no ar) e mostra os endereços
 kill $(cat servidor.pid)          # para
 python3 testar.py                 # testes ligados ao que mudou (diff + não commitado + novos)
 python3 testar.py --so-decidir    # só mostra quais rodariam
@@ -59,7 +59,7 @@ Copie de `config.example.json` (o `ativar.py` faz isso). Os caminhos do projeto 
 | `registros_baterias` | `registros/baterias` | registros `.md` de baterias passadas (base da previsão) |
 | `cache` | `~/.cache` | onde ficam os logs de bateria e a trava dos testes |
 | `bateria_logs` | `bateria-*.log` | nome dos logs de bateria em `cache`; o `*` é o nome do worktree |
-| `bateria_comando`, `bateria_cadeia` | `testar-como-o-ci.sh`, `encadear-baterias` | processos que indicam bateria rodando e fila de baterias |
+| `bateria_comando`, `bateria_cadeia` | `testar_como_o_ci.py`, `encadear-baterias` | processos que indicam bateria rodando e fila de baterias |
 | `testes_de_tela_total` | `0` | total de testes de tela, para a barra da bateria (0 = desconhecido) |
 | `trava_testes` | vazio | pasta-trava dentro de `cache` (com `dono.json`); vazio = não mostra |
 | `fatia_testes` | vazio | fatia do systemd (`*.slice`) dos testes, para o quadro de memória; vazio = não mostra |
@@ -103,7 +103,7 @@ A sessão do Claude mantém o `perguntas.json` desta pasta (lista; começa `[]`)
 ```
 
 As dúvidas abertas do `arquivo_duvidas` que não estão no JSON aparecem também. Responder grava
-`respostas/pendentes/<data-hora>-<id>.json` (escrita atômica, até 30 por hora). A sessão roda `./esperar-resposta.sh` em
+`respostas/pendentes/<data-hora>-<id>.json` (escrita atômica, até 30 por hora). A sessão roda `python3 esperar_resposta.py` em
 segundo plano: ele espera, imprime `RESPOSTA <json>` da mais antiga, move o arquivo para `respostas/entregues/` e sai.
 
 ## Segurança

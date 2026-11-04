@@ -8,6 +8,9 @@ Formato de cada item: **o que travou**, onde parou (tarefa, branch, commit), as 
 acontece enquanto não houver resposta. Item resolvido ganha a linha `**Resposta (data):**`, e a decisão vai para a
 tarefa no `TASKS.md`.
 
+As opções levam letra (a, b, c...) com prós e contras curtos e a recomendada marcada com o porquê, para a resposta caber
+numa linha pelo celular: "D-1 a", "D-2 b", ou "sim" para aceitar todas as recomendadas.
+
 Decisão simples a sessão toma sozinha (com o porquê na tarefa). Decisão difícil pode ir a um conselho de modelos (skill
 `llm-council`) e entra aqui como "decidido pelo conselho, para confirmar". Permissão (publicar, mexer em produção,
 apagar algo) é sempre de quem manda.

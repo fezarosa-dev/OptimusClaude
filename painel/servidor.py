@@ -40,7 +40,7 @@ _linhas = {"v": None, "erro": None}
 _acordar = {n: threading.Event() for n in ("consumo", "shells", "lancamentos", "linhas")}  # a rota de recarregar interrompe a espera de cada laço
 _trava_envio = threading.Lock()
 PAGINA_403 = ("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>Sem acesso</title>"
-              "<p>Sem acesso. Abra o endereço com a chave que o <code>iniciar.sh</code> mostra no PC.</p>").encode()
+              "<p>Sem acesso. Abra o endereço com a chave que o <code>iniciar.py</code> mostra no PC.</p>").encode()
 
 
 def carregar_chave(caminho):

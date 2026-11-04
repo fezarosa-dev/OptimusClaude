@@ -10,9 +10,10 @@ relatório de revisão cita onde está o problema, não o dado.
 
 | O quê | O que guarda | Quem grava |
 |---|---|---|
-| `baterias/` | Um resumo por rodada do `scripts/testar-como-o-ci.sh`: data com fuso, branch, commit, hash da árvore, se havia mudança não commitada (o sha256 do `git diff`, nunca o conteúdo), cada passo com OK, FALHOU ou PULADO, `EXIGIR_TUDO`, duração e o sha256 do log completo | a própria bateria, ao sair (verde, vermelha ou interrompida) |
+| `baterias/` | Um resumo por rodada do `scripts/testar_como_o_ci.py`: data com fuso, branch, commit, hash da árvore, se havia mudança não commitada (o sha256 do `git diff`, nunca o conteúdo), cada passo com OK, FALHOU ou PULADO, `EXIGIR_TUDO`, duração e o sha256 do log completo | a própria bateria, ao sair (verde, vermelha ou interrompida) |
 | `revisoes/` | O relatório de cada revisão (`AAAA-MM-DD-<tipo>.md`): achados, veredito dos céticos, o que foi derrubado e por quê | `python3 scripts/registros/salvar_revisao.py <tipo> <arquivo>` |
 | `correcoes.md` | O livro de correções: cada achado numerado (C-001...), origem, gravidade, onde, commit da correção, o teste que prova (vermelho e verde) | à mão, no formato do próprio arquivo |
+| `padroes.md` | As lições das revisões: armadilhas e padrões deste projeto, uma linha cada, no máximo ~60 linhas (consolida as parecidas ao passar disso). Todo agente que implementa lê antes de começar | a sessão principal, com o campo `licoes` que o revisor devolve |
 | `INDICE.md` | Cada arquivo desta pasta com o sha256 | `python3 scripts/registros/indice.py`, na `dev`, pela sessão principal |
 
 O `salvar_revisao.py` **recusa** (saída 1) o relatório que tiver segredo ou dado pessoal (JWT, Authorization/Bearer,
