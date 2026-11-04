@@ -32,6 +32,7 @@ SEMPRE = ["segredos", "scripts"]
 MAPA = [
     (".github/workflows/", ["actions"]),
     ("scripts/", ["scripts", "shell"]),
+    (".githooks/", ["scripts"]),
     ("registros/", []),
     ("docs/", []),
     # ("src/", ["python"]),

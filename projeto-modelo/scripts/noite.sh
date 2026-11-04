@@ -21,6 +21,7 @@ command -v claude >/dev/null || { echo "claude não encontrado no PATH" >&2; exi
 [ "$(git branch --show-current)" = dev ] || { echo "comece na dev (git switch dev && git pull)" >&2; exit 2; }
 git diff --quiet && git diff --cached --quiet || { echo "a dev tem mudança não commitada: commite ou guarde antes" >&2; exit 2; }
 
+[ -d .githooks ] && git config core.hooksPath .githooks   # commit fora do padrão é recusado também à noite
 mkdir -p .noite
 grep -qxF '.noite/' .gitignore 2>/dev/null || echo '.noite/' >> .gitignore
 LOG=".noite/$(date +%F).log"
@@ -32,7 +33,7 @@ PROMPT_PADRAO='Modo noturno do OptimusClaude. Você está sozinho: o usuário es
 1. Leia TASKS.md e duvidas.md. Escolha a PRIMEIRA tarefa com estado `aprovada` (de cima para baixo) que não tenha dúvida aberta no duvidas.md. Se não houver nenhuma, responda só a linha: NOITE_FIM
 2. Marque a tarefa como `em andamento (noite)` no TASKS.md.
 3. Faça a tarefa pelo fluxo do método: worktree próprio a partir da dev, implementação com TDD por subagente, revisão do diff por outro subagente, correção até 3 rodadas, bateria do que mudou (scripts/testar-como-o-ci.sh). Leia registros/padroes.md antes e junte nele as lições do revisor.
-4. Verde: commit na branch da tarefa, merge --no-ff na dev LOCAL (sem push), apague o worktree, estado `feita na dev (noite, sem push)`.
+4. Verde: commit na branch da tarefa (mensagem pela skill commit-curto), merge --no-ff na dev LOCAL (sem push), apague o worktree, estado `feita na dev (noite, sem push)`.
 5. Não ficou verde depois de 3 rodadas, ou precisa de decisão do usuário: registre no duvidas.md (o que travou, onde parou, opções com recomendação), estado `travada (noite)`, deixe a branch como está e volte para a dev.
 6. Nunca: push, PR, tocar na main, reset --hard (uma guarda nega).
 Termine com UMA linha, a última da resposta: NOITE_TAREFA <Tn> <feita|travada> <resumo de uma frase>'
