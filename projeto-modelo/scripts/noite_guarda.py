@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hook PreToolUse (Bash) que o scripts/noite.sh liga só para a noite (via --settings): nada sai da máquina e a
+"""Hook PreToolUse (Bash) que o scripts/noite.py liga só para a noite (via --settings): nada sai da máquina e a
 main não é tocada. Nega git push, gh pr merge/create, merge ou rebase com a main, checkout/switch para a main,
 reset --hard e apagar branch remota. Qualquer erro de leitura: nega (a noite roda sem supervisão)."""
 import json

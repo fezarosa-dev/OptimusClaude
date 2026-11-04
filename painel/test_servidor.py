@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import stat
+import sys
 import subprocess
 import tempfile
 import threading
@@ -194,7 +195,7 @@ class TestGravacaoAtomica(unittest.TestCase):
 class TestEsperarResposta(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
-        shutil.copy(os.path.join(AQUI, "esperar-resposta.sh"), self.d)
+        shutil.copy(os.path.join(AQUI, "esperar_resposta.py"), self.d)
         self.pend = os.path.join(self.d, "respostas", "pendentes")
         os.makedirs(self.pend)
 
@@ -204,14 +205,14 @@ class TestEsperarResposta(unittest.TestCase):
     def test_entrega_o_mais_antigo_e_move(self):
         for nome, txt in (("20261101-100000-000001-D-1.json", '{"id": "D-1"}'), ("20261101-110000-000001-D-2.json", '{"id": "D-2"}')):
             Path(self.pend, nome).write_text(txt)
-        r = subprocess.run([os.path.join(self.d, "esperar-resposta.sh")], capture_output=True, text=True, timeout=10)
+        r = subprocess.run([sys.executable, os.path.join(self.d, "esperar_resposta.py")], capture_output=True, text=True, timeout=10)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stdout, 'RESPOSTA {"id": "D-1"}\n')
         self.assertEqual(os.listdir(self.pend), ["20261101-110000-000001-D-2.json"])
         self.assertEqual(os.listdir(os.path.join(self.d, "respostas", "entregues")), ["20261101-100000-000001-D-1.json"])
 
     def test_espera_ate_chegar(self):
-        p = subprocess.Popen([os.path.join(self.d, "esperar-resposta.sh")], stdout=subprocess.PIPE, text=True,
+        p = subprocess.Popen([sys.executable, os.path.join(self.d, "esperar_resposta.py")], stdout=subprocess.PIPE, text=True,
                              env={**os.environ, "INTERVALO": "0.2"})
         time.sleep(0.6)
         self.assertIsNone(p.poll())

@@ -14,7 +14,7 @@ integração terminar: todas as branches juntas na `dev`, conflitos resolvidos, 
 
 1. **A `main` junta na `dev`** (`git fetch && git merge origin/main` na `dev`), se ela andou. Conflito se resolve na
    `dev`, com bateria do que o conflito tocou.
-2. **Bateria completa na máquina, sem nada pulado:** `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh` na `dev`. Qualquer
+2. **Bateria completa na máquina, sem nada pulado:** `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` na `dev`. Qualquer
    `PULADO` reprova: instale o que faltar. O PR não pode ser o primeiro lugar onde um teste roda.
 3. **Revisões de segurança, só no diff** `origin/main...dev`:
    - `/security-review`;
@@ -55,7 +55,7 @@ integração terminar: todas as branches juntas na `dev`, conflitos resolvidos, 
     ```
 11. **Conferir que chegou:** skill `conferir-producao`, em rodadas, por um tempo. Quebrou: correção pelo mesmo caminho
     (`fix/` → `dev` → PR) ou `git revert -m 1 <merge>` também por PR, mais o desfazer das migrations na ordem inversa.
-12. **Ao fim:** `docs/publicacao-pendente.md` recomeça vazio; diga em duas linhas o que foi publicado (PR, commit), o
+12. **Ao fim:** `python3 scripts/arquivar.py` (tarefas no ar e dúvidas respondidas saem para `docs/`, num commit `chore(tarefas): arquiva o que foi publicado` pela `dev`); `docs/publicacao-pendente.md` recomeça vazio; diga em duas linhas o que foi publicado (PR, commit), o
     que depende de alguém, e como voltar (a tag `antes-da-publicacao-*`).
 
 ## Nunca

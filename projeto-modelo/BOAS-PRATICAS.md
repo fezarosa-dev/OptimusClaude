@@ -24,7 +24,7 @@ arquivo é corrigido. Adapte as seções ao seu projeto; apague o que não se ap
 
 - Toda mudança nasce numa branch `feat/`, `fix/`, `docs/` ou `ci/`, tirada da `dev` atualizada.
 - Um commit por subtarefa, `tipo(escopo): descrição`.
-- Antes de juntar na `dev`, `scripts/testar-como-o-ci.sh` na máquina. Se falhar, não junta.
+- Antes de juntar na `dev`, `python3 scripts/testar_como_o_ci.py` na máquina. Se falhar, não junta.
 - Para a `main`, só PR saído da `dev`, com o `tudo-verde` verde. Merge na `main` é deploy.
 - A `main` é protegida, inclusive para administradores. Nunca contorne. Se travar, pare e avise.
 - Nunca reescreva histórico que já subiu.
@@ -145,7 +145,7 @@ Item que não se aplica fica marcado com "n/a".
 **Sempre**
 
 - [ ] Teste escrito antes; vermelho e verde vistos (e o vermelho conferido por quem revisou).
-- [ ] `scripts/testar-como-o-ci.sh` passou na máquina.
+- [ ] `python3 scripts/testar_como_o_ci.py` passou na máquina.
 - [ ] Commits `tipo(escopo): descrição`, um por subtarefa, sem autoria de IA.
 - [ ] Nenhum dado pessoal, segredo ou valor em código, teste, log, commit ou branch.
 - [ ] Nenhuma dependência nova, ou a justificativa está no PR.
@@ -166,7 +166,7 @@ Item que não se aplica fica marcado com "n/a".
 **Antes do PR da `dev` para a `main`**
 
 - [ ] A `main` está junta na `dev`, sem conflito.
-- [ ] `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh` verde, sem PULADO.
+- [ ] `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` verde, sem PULADO.
 - [ ] Revisões de segurança do diff feitas e salvas em `registros/revisoes/`.
 - [ ] O PR diz o que entra em produção e como voltar atrás.
 - [ ] Nada de `--admin`, push direto ou `--delete-branch`.

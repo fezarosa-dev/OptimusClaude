@@ -1,4 +1,4 @@
-"""Decide o que testar pelo que mudou. Um mapa só, usado na máquina (scripts/testar-como-o-ci.sh) e no CI.
+"""Decide o que testar pelo que mudou. Um mapa só, usado na máquina (scripts/testar_como_o_ci.py) e no CI.
 
     python3 scripts/o_que_testar.py ARQUIVO...      # nomes das verificações, uma por linha
     python3 scripts/o_que_testar.py --tudo          # todas as verificações
@@ -12,12 +12,13 @@ e diga no MAPA quais caminhos ligam cada uma. Os exemplos comentados mostram Pyt
 """
 import sys
 
-# nome: (programas que precisam existir, comando rodado com bash -c na raiz do repositório).
+# nome: (programas que precisam existir, comando rodado pelo shell da plataforma na raiz do repositório: sh no
+# Linux/macOS, cmd no Windows. Use aspas duplas, que os dois entendem; && funciona nos dois).
 # Programa que falta vira PULADO (e reprova com EXIGIR_TUDO=1).
 VERIFICACOES = {
     "segredos": (["gitleaks"], "gitleaks git --no-banner --redact . && gitleaks dir --no-banner --redact ."),
-    "scripts": (["python3"], "python3 -I -m unittest discover -s scripts -p 'test_*.py'"),
-    "shell": (["shellcheck"], "git ls-files -z '*.sh' | xargs -0 -r shellcheck"),
+    "scripts": (["python3"], 'python3 -I -m unittest discover -s scripts -p "test_*.py"'),
+    "shell": (["shellcheck", "xargs"], 'git ls-files -z "*.sh" | xargs -0 -r shellcheck'),
     "actions": (["actionlint"], "actionlint"),
     # "python": (["uv"], "uv run --frozen pytest -q && uvx ruff check ."),
     # "node": (["npm"], "cd web && npm ci && npm run lint && npm test && npm run build"),

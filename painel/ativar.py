@@ -55,12 +55,12 @@ def main(cwd):
             with open(os.path.join(AQUI, "servidor.pid")) as f:
                 pid = int(f.read().strip())
             os.kill(pid, signal.SIGTERM)
-            for _ in range(20):  # espera sair, senão o iniciar.sh acha o antigo "já no ar"
+            for _ in range(20):  # espera sair, senão o iniciar.py acha o antigo "já no ar"
                 time.sleep(0.25)
                 os.kill(pid, 0)
         except (OSError, ValueError):
             pass
-    return subprocess.run([os.path.join(AQUI, "iniciar.sh")]).returncode
+    return subprocess.run([sys.executable, os.path.join(AQUI, "iniciar.py")]).returncode
 
 
 if __name__ == "__main__":

@@ -1,9 +1,10 @@
-"""Testes do modo noturno: a guarda (o que nega) e o laço do noite.sh com um `claude` falso no PATH.
+"""Testes do modo noturno: a guarda (o que nega) e o laço do noite.py com um `claude` falso no PATH.
 
     python3 -I -m unittest discover -s scripts -p 'test_*.py'
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,7 +29,7 @@ class Guarda(unittest.TestCase):
 
     def test_deixa_o_trabalho_normal(self):
         for cmd in ("git status", "git switch dev", "git merge --no-ff feat/t3", "git worktree add ../wt -b feat/t3",
-                    "git commit -m 'feat: x'", "scripts/testar-como-o-ci.sh", "git log --oneline main..dev",
+                    "git commit -m 'feat: x'", "scripts/testar_como_o_ci.py", "git log --oneline main..dev",
                     "pytest -q", "git branch -d feat/t3"):
             self.assertIsNone(bash(cmd), cmd)
 
@@ -38,8 +39,9 @@ class Guarda(unittest.TestCase):
         self.assertEqual(json.loads(p.stdout)["hookSpecificOutput"]["permissionDecision"], "deny")
 
 
+@unittest.skipIf(os.name == "nt" or not shutil.which("bash"), "o claude falso é um script bash")
 class Laco(unittest.TestCase):
-    """noite.sh com um claude falso que devolve respostas prontas, uma por chamada."""
+    """noite.py com um claude falso que devolve respostas prontas, uma por chamada."""
 
     def rodar(self, respostas):
         tmp = tempfile.TemporaryDirectory()
@@ -47,7 +49,7 @@ class Laco(unittest.TestCase):
         repo, bin_ = Path(tmp.name, "repo"), Path(tmp.name, "bin")
         (repo / "scripts").mkdir(parents=True)
         bin_.mkdir()
-        for nome in ("noite.sh", "noite_guarda.py"):
+        for nome in ("noite.py", "noite_guarda.py"):
             (repo / "scripts" / nome).write_text((AQUI / nome).read_text())
         (repo / "TASKS.md").write_text("# Tarefas\n")
         fila = Path(tmp.name, "fila")
@@ -61,8 +63,8 @@ class Laco(unittest.TestCase):
         g("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "início")
         g("add", "-A")
         g("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
-        env = {**os.environ, "PATH": f"{bin_}:{os.environ['PATH']}", "NTFY_TOPICO": ""}
-        p = subprocess.run(["bash", "scripts/noite.sh"], cwd=repo, capture_output=True, text=True, env=env,
+        env = {**os.environ, "PATH": f"{bin_}{os.pathsep}{os.environ['PATH']}", "NTFY_TOPICO": ""}
+        p = subprocess.run([sys.executable, "scripts/noite.py"], cwd=repo, capture_output=True, text=True, env=env,
                            timeout=30)
         return p, (fila.read_text().strip())
 

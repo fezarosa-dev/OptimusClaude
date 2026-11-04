@@ -7,7 +7,7 @@
 <!-- T3, T5, T8 (feitas na dev). -->
 
 ## Garantia
-- Bateria completa: `EXIGIR_TUDO=1 scripts/testar-como-o-ci.sh` verde, sem PULADO (registro: `registros/baterias/<arquivo>`)
+- Bateria completa: `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` verde, sem PULADO (registro: `registros/baterias/<arquivo>`)
 - Revisões de segurança do diff: `registros/revisoes/<arquivo>`
 - Índice dos registros: sha256 `<hash>`
 

@@ -9,7 +9,7 @@
 ## Como testei
 - Vermelho: `<comando>` falha em `<teste>` (asserção: ...)
 - Verde: `<comando>` passa
-- Bateria: `scripts/testar-como-o-ci.sh` verde (registro: `registros/baterias/<arquivo>`)
+- Bateria: `python3 scripts/testar_como_o_ci.py` verde (registro: `registros/baterias/<arquivo>`)
 
 ## Revisão
 - Revisor: <agente/modelo>, <n> rodada(s). Problemas altos/médios: corrigidos.

@@ -9,7 +9,7 @@ etapa: quando a dependência cai, a próxima etapa segue.
 
 Toda tarefa tem **Objetivo** (o resultado que quem pediu vai ver) e **Conferir** com critérios verificáveis (no TDD eles
 viram os testes vermelhos). Se não dá para descrever o **Fazer** em 2 ou 3 frases, a tarefa é grande demais: divida em
-`Tn` menores, na ordem das dependências (banco, depois servidor, depois tela). O modo noturno (`scripts/noite.sh`) pega
+`Tn` menores, na ordem das dependências (banco, depois servidor, depois tela). O modo noturno (`scripts/noite.py`) pega
 as tarefas `aprovada`, de cima para baixo, que não tenham dúvida aberta no `duvidas.md`.
 
 Achar uma tarefa: `grep -nE '^#{2,3} T[0-9]' TASKS.md`.
@@ -34,5 +34,5 @@ Achar uma tarefa: `grep -nE '^#{2,3} T[0-9]' TASKS.md`.
 ### T1 · Ligar a bateria local e o CI (exemplo)
 
 - **Origem:** começo do projeto.
-- **Fazer:** `scripts/testar-como-o-ci.sh`, o mapa `scripts/o_que_testar.py` e o `.github/workflows/testes.yml`.
+- **Fazer:** `scripts/testar_como_o_ci.py`, o mapa `scripts/o_que_testar.py` e o `.github/workflows/testes.yml`.
 - **Estado:** feita na `dev` (merge `<sha>`), no ar (PR #1).
