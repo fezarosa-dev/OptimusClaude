@@ -169,5 +169,6 @@ if ($Falta.Count -eq 0) {
   $Falta | ForEach-Object { Say "  - $_" }
   Say "Rode o install.ps1 de novo depois: o que já está certo é pulado."
 }
+Say "Modo noturno (projeto-modelo/scripts/noite.sh) e os hooks em python precisam de bash/python: no Windows, use pelo WSL."
 Say "Skills de terceiros (caveman, find-skills etc.) não vêm neste repositório: veja docs/dependencias.md."
 Say "Quer o painel da sessão? Instale pelo WSL: veja a seção Windows do README."

@@ -117,6 +117,17 @@ gastos a cada chamada.
 - `revisao-profunda.js`: revisão pesada antes de publicar. Um revisor por dimensão (correção, segurança, concorrência,
   dados, testes e, se pedir, LGPD), e cada achado é testado por "céticos" que tentam derrubá-lo. Só lê, não muda nada.
 
+**Hooks (`claude/hooks/`).** Regras que viram barreira, sem depender de o Claude lembrar. Ligados pelo
+`settings.example.json`; qualquer erro deles deixa passar, nunca trava o trabalho.
+
+| Hook | O que faz | Desligar na sessão |
+|---|---|---|
+| `ler_grande.py` | Nega ler inteiro um arquivo de código de 32 KB ou mais e manda usar Serena, ccc ou `Read` com `offset`/`limit` | `OPTIMUS_LER_TUDO=1` |
+| `so_subagente_edita.py` | Em projeto com `TASKS.md`, nega a sessão principal editando código: quem edita é subagente. `.md`, `registros/`, `docs/`, `.claude/` e a memória ficam livres | `OPTIMUS_PRINCIPAL_EDITA=1` |
+| `contexto_baixo.py` | Com o contexto em 70% (e de novo em 85%), avisa o próprio Claude para fechar o passo e rodar o `session-handoff`. Lê a porcentagem da statusline do painel | tirar do `settings.json` |
+
+Testes: `python3 -m unittest discover -s claude/hooks`.
+
 **Comando `/stop` (`claude/commands/`).** Para na hora o que estiver em andamento.
 
 **Mods (`claude/mods/`).** Mudam a interface do Claude Code: `status-bar` (linha de status com git, modelo,
@@ -139,7 +150,8 @@ o que a sessão está esperando. Os testes dele rodam com `python3 testar.py`, q
 | `TASKS.md` | A fila de tarefas `Tn`, com estado de cada uma |
 | `duvidas.md` | O que espera decisão sua |
 | `scripts/testar-como-o-ci.sh` e `scripts/o_que_testar.py` | A bateria: roda na máquina o que o CI rodaria, só para o que o diff toca |
-| `registros/` | As provas: baterias, revisões, correções e publicações pendentes |
+| `scripts/noite.sh` e `scripts/noite_guarda.py` | O modo noturno: roda a fila do `TASKS.md` sozinho até esvaziar (veja [Modo noturno](#modo-noturno)) |
+| `registros/` | As provas: baterias, revisões, correções e publicações pendentes; e `padroes.md`, as lições das revisões que todo agente lê antes de implementar |
 | `.github/workflows/testes.yml` | O CI, que roda só no PR para a `main` e no push da `main` |
 | `.claude/skills/` | `publicar` (da `dev` até a produção), `aplicar-migration` (mudança de banco testada com rollback) e `conferir-producao` (ver se a produção está saudável) |
 
@@ -230,6 +242,7 @@ OptimusClaude/
 │   ├── agents/         runner, searcher, editor, researcher, doc-writer (cada um com o mínimo de tools)
 │   ├── skills/         notify, painel, preflight, session-handoff, snote
 │   ├── workflows/      fazer-revisar-corrigir.js, revisao-profunda.js
+│   ├── hooks/          ler arquivo grande, só subagente edita, aviso de contexto baixo
 │   ├── commands/       /stop
 │   ├── mods/           status-bar e painel-agentes (plugins locais de interface)
 │   ├── scripts/        instalar skills, medir o custo dos plugins, busca no vault
@@ -237,7 +250,7 @@ OptimusClaude/
 │   └── settings.example.json
 ├── painel/             painel web local da sessão (Python, só biblioteca padrão)
 ├── projeto-modelo/     para copiar para o seu projeto: CLAUDE.md, BOAS-PRATICAS.md, TASKS.md, duvidas.md,
-│                       scripts/ (bateria e mapa de testes), registros/, CI, skills publicar,
+│                       scripts/ (bateria, mapa de testes e modo noturno), registros/, CI, skills publicar,
 │                       aplicar-migration e conferir-producao
 └── docs/               o método explicado
 ```
@@ -372,6 +385,28 @@ Depois:
    `scripts/testar-como-o-ci.sh` e, estando verde, faz `merge --no-ff` na `dev` e push.
 6. `TASKS.md` e `registros/` ficam em dia. A `T1` passa para "feita na dev". Nada foi para produção: isso só acontece
    quando você pedir para publicar.
+
+### Modo noturno
+
+Deixa a fila andando enquanto você dorme. Na raiz do projeto, na `dev` atualizada e sem mudança pendente:
+
+```bash
+scripts/noite.sh
+```
+
+- Cada tarefa roda numa **sessão nova do Claude** (contexto limpo), com `--dangerously-skip-permissions`: nada pede
+  confirmação. Pega a primeira `Tn` `aprovada` do `TASKS.md` que não tenha dúvida aberta e faz pelo fluxo de sempre
+  (worktree, TDD por subagente, revisão, correção até 3 rodadas, bateria).
+- Verde: junta na `dev` **local**, sem push. Não ficou verde ou precisa de você: vai para o `duvidas.md` e a fila segue.
+- **Sem limite de tarefas nem de horas:** para quando a fila esvazia, quando a mesma tarefa volta duas vezes seguidas ou
+  depois de 3 falhas seguidas do `claude`.
+- Uma guarda que só vale à noite (`noite_guarda.py`, passada por `--settings`) nega `git push`, PR, tocar na `main`,
+  `reset --hard` e apagar branch à força. Os hooks do seu `~/.claude` continuam valendo.
+- No fim chega o resumo no celular (`NTFY_TOPICO`). Log em `.noite/AAAA-MM-DD.log`. De manhã você confere a `dev` e
+  decide o push.
+- Agendar (opcional), com um timer do systemd do usuário: um `.service` com `WorkingDirectory=<projeto>` e
+  `ExecStart=<projeto>/scripts/noite.sh`, e um `.timer` com `OnCalendar=*-*-* 23:30`.
+- Linux e WSL. No Windows nativo, rode dentro do WSL.
 
 ## Linguagens e ferramentas
 
