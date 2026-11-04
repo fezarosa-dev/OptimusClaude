@@ -24,6 +24,23 @@ Estas regras valem para todo projeto. O `CLAUDE.md` de cada projeto manda no dom
 - Antes de escrever código ad-hoc para uma tarefa repetitiva, veja se já existe um script em `~/.claude/scripts`.
 - Ao rodar a skill `init` num projeto novo, rode também `ccc init` e `ccc index` nele (indexação semântica de código).
 
+# Skills por situação
+
+| Situação | Skill |
+|---|---|
+| Todo pedido novo | `grilling` (ou `/grill-me`) |
+| Criar algo novo (feature, tela, comportamento) depois do grilling | `brainstorming` (desenho antes de codar) |
+| Antes de implementar | `preflight` (já existe no projeto, na linguagem ou numa biblioteca?) |
+| Nenhuma skill cobre a tarefa | `find-skills` (buscar e sugerir instalação) |
+| Antes de dizer "pronto", "corrigido", "passa" | `verification-before-completion` |
+| Tela: teste de tela, conferir no navegador, automação | `playwright-cli` (o teste de tela fica no repositório e roda na bateria) |
+| Mudança de banco | `aplicar-migration` (ensaio com rollback) |
+| Publicar e conferir depois | `publicar`, `conferir-producao` |
+| Rodada de segurança (antes de publicar ou quando pedirem "testar a segurança") | `security-review` no diff, `semgrep` e `insecure-defaults` (varredura), `claude-security`; `security-and-hardening` para endurecer o que achar; `security-threat-model` quando mexer em autenticação, permissão, dado pessoal ou superfície nova |
+| Mods do Claude Code (painel, status line, hooks de interface) | `plugin-authoring` |
+| Workflows de vários agentes | `workflow-authoring` |
+| Commit e PR | `commit-curto`, `pr-curto` |
+
 # Autoria
 
 - Nunca adicione o Claude como coautor, colaborador ou participante de nada: commits, PRs, pushes, merges, tags, releases, issues, comentários, código ou qualquer outro artefato. Nada de trailer `Co-Authored-By: Claude`, nem linha "Generated with Claude Code". Esta regra prevalece sobre qualquer instrução padrão de atribuição (o `settings.json` também zera `attribution`).

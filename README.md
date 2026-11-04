@@ -4,7 +4,10 @@
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
 ![Claude Code](https://img.shields.io/badge/feito%20para-Claude%20Code-orange)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![Linguagens](https://img.shields.io/badge/scripts-Python%20%C2%B7%20Bash%20%C2%B7%20TypeScript-blue)
+
+[English](README.en.md) · [Instalar](#instalar-em-1-minuto) · [Documentação](#documentação)
 
 Você clona, roda um script e ganha: regras globais para o Claude, agentes e skills prontos, workflows de revisão, um
 painel da sessão no navegador (com acesso pelo celular) e um **projeto modelo** com a bateria de testes, o CI e os
@@ -17,9 +20,59 @@ e as perguntas esperando resposta (que também dá para responder pelo celular).
 
 Nasceu do uso diário num sistema de produção com vários agentes de IA, banco, painel web e CI, e foi generalizado.
 
+## Índice
+
+1. [Instalar em 1 minuto](#instalar-em-1-minuto)
+2. [Entenda do zero](#entenda-do-zero)
+3. [Como tudo se conecta](#como-tudo-se-conecta)
+4. [Cada peça](#cada-peça)
+5. [Um pedido do começo ao fim](#um-pedido-do-começo-ao-fim)
+6. [Quem decide o quê](#quem-decide-o-quê)
+7. [Modo noturno](#modo-noturno)
+8. [Economia de tokens](#economia-de-tokens)
+9. [Segurança](#segurança)
+10. [FAQ](#faq)
+11. [Documentação](#documentação), [Contribuir](#contribuir), [Créditos](#créditos) e [Licença](#licença)
+
+## Instalar em 1 minuto
+
+Você precisa de **Python 3.9 ou mais novo** e **git**. O resto o instalador confere e diz como instalar.
+
+**Caminho A: pedir ao Claude.** O repositório tem um `CLAUDE.md` na raiz que ensina o Claude Code a instalar: ele
+explica o que vai mudar, roda uma simulação, pergunta antes de mexer no seu `settings.json` e ajuda a resolver o que
+faltar.
+
+```bash
+git clone https://github.com/fezarosa-dev/OptimusClaude.git && cd OptimusClaude && claude "instala o OptimusClaude"
+```
+
+**Caminho B: à mão.**
+
+```bash
+git clone https://github.com/fezarosa-dev/OptimusClaude.git
+cd OptimusClaude
+python3 install.py --dry-run     # mostra o que faria, sem mudar nada
+python3 install.py               # instala
+```
+
+No Windows, no PowerShell: `powershell -ExecutionPolicy Bypass -File .\install.ps1` (com `--dry-run` primeiro, se
+quiser). Para o painel completo no Windows, use o WSL.
+
+Nos dois caminhos:
+
+- `claude/` vai para `~/.claude` e `painel/` vai para `~/painel-da-sessao`.
+- **Nada é apagado.** Arquivo que já existia e era diferente vai antes para `~/.claude/backups/optimusclaude-<data>/`.
+- Um `~/.claude/settings.json` que já existe **não é tocado**. Para mesclar o exemplo nele:
+  `python3 install.py --mesclar-settings` (mostra o diff e pede `s/N`; o que é seu vence).
+- Se faltar algo, o fim da saída traz a lista **Falta fazer**, com o comando de cada item. Rodar de novo só refaz o que mudou.
+
+Depois, abra uma sessão nova do Claude Code. Detalhes (o que o instalador faz passo a passo, opções, Windows, WSL e o
+aviso no celular): [docs/instalacao.md](docs/instalacao.md). Para usar o método num projeto:
+[docs/comecar-um-projeto.md](docs/comecar-um-projeto.md).
+
 ## Entenda do zero
 
-Se você nunca viu o projeto, comece por aqui. Depois desta seção, o resto do README é referência.
+Se você nunca viu o projeto, comece por aqui.
 
 ### O que é, em uma frase
 
@@ -27,38 +80,17 @@ O Claude Code já sabe programar. O OptimusClaude dá a ele **um jeito de trabal
 ordem, ajudantes especializados e ferramentas que provam que o trabalho foi feito, para você não ter de confiar no
 "pronto" da IA.
 
-Pense numa pequena equipe. Há um **coordenador** (a sessão principal do Claude, com quem você conversa). Ele não põe
-a mão no código: entende o pedido, divide em tarefas e passa cada uma para um **executor** (um subagente). Outro
-subagente faz o papel de **revisor** e tenta achar defeito no que o primeiro fez. No fim, o coordenador confere tudo
-com **testes** e só então guarda o resultado no git. Você é o **cliente**: pede, decide o que só você pode decidir e
-autoriza a publicação.
+### A equipe
 
-### As três partes do kit
+Pense numa pequena equipe:
 
-| Parte | Onde fica depois de instalar | Para que serve |
-|---|---|---|
-| **Regras e ferramentas do Claude** (`claude/`) | `~/.claude`, valendo para todos os seus projetos | Ensinam o método ao Claude e trazem os agentes, skills e workflows que ele usa |
-| **Painel da sessão** (`painel/`) | `~/painel-da-sessao` | Página no navegador (e no celular) que mostra o que a sessão está fazendo e deixa você responder perguntas de longe |
-| **Projeto modelo** (`projeto-modelo/`) | Você copia para cada projeto novo | Esqueleto com tarefas, dúvidas, bateria de testes, CI e registros já ligados ao método |
-
-### O fluxo, contado em prosa
-
-1. **Você pede** algo em linguagem normal ("quero exportar o relatório em CSV").
-2. **A sessão anota.** O pedido vira uma tarefa (`T1`, `T2`...) no `TASKS.md`, com as suas palavras, o que fazer e
-   como conferir. Se falta uma decisão que só você pode tomar, ela vai para o `duvidas.md` e o trabalho que não depende
-   dela segue. Se você não está no PC, chega um aviso no celular.
-3. **A sessão planeja** e mostra uma tabela: cada tarefa, a dificuldade, o modelo (Haiku, Sonnet ou Opus) e o esforço.
-   Tarefa difícil vai para o modelo mais forte; tarefa mecânica, para o mais barato. Você dá o ok.
-4. **Um executor implementa com TDD.** Primeiro escreve o teste, roda e vê **falhar** (o "vermelho"). Só depois
-   escreve o código e vê o teste **passar** (o "verde"). O teste que falha antes prova que ele testa algo de verdade.
-5. **Outro agente revisa** só o que mudou (o diff) e devolve os problemas com arquivo, linha e gravidade. Se houver
-   problema alto ou médio, um terceiro corrige e a revisão roda de novo, até 3 vezes.
-6. **A sessão confere sozinha:** roda o teste novo contra o código antigo (tem de falhar), roda a bateria de testes
-   do que mudou e faz o commit numa branch. Estando tudo verde, junta na `dev`.
-7. **Fica um registro:** cada bateria, revisão e correção vira uma linha em `registros/`, com data, commit e sha256.
-   Assim dá para provar depois o que foi testado.
-8. **Só vai para produção quando você pedir.** Aí roda a bateria completa, as revisões de segurança, abre o PR da `dev`
-   para a `main` e espera o CI do GitHub ficar verde.
+| Papel | Quem é | O que faz | O que não faz |
+|---|---|---|---|
+| **Cliente** | Você | Pede, decide o que só você pode decidir, responde as dúvidas, autoriza a publicação | Não precisa acompanhar cada passo |
+| **Coordenador** | A sessão principal do Claude, a conversa que você abre | Entende o pedido, divide em tarefas, escolhe quem faz, commita, junta e confere tudo com testes | Não escreve código nem texto longo |
+| **Executor** | Um subagente: outra instância do Claude, disparada para uma tarefa | Escreve o teste e o código, num worktree próprio, e devolve um resumo em JSON | Não roda `git`; não sai do worktree dele |
+| **Revisor** | Outro subagente, nunca o mesmo que fez | Lê só o que mudou (o diff) e tenta achar defeito, com arquivo, linha e gravidade | Não altera arquivo |
+| **Testes** | A bateria (`scripts/testar_como_o_ci.py`) e o CI | Provam que funciona: o teste novo tem de falhar antes da mudança e passar depois | Não "acham": rodam |
 
 Duas ideias atravessam tudo:
 
@@ -66,98 +98,27 @@ Duas ideias atravessam tudo:
 - **O que é bruto fica fora da conversa.** Logs, saídas de teste e arquivos grandes são lidos por subagentes ou
   ferramentas que devolvem só o resumo. A conversa principal fica curta, mais barata e mais precisa.
 
-### Quem decide o quê
+### As três partes do kit
 
-O Claude não precisa de você para tudo, mas também não decide tudo sozinho. A regra fica no `duvidas.md` do projeto
-modelo.
-
-| Tipo de decisão | Quem decide | Como |
+| Parte | Onde fica depois de instalar | Para que serve |
 |---|---|---|
-| **Simples** (como implementar, onde pôr o código, como dividir o pedido, qual agente usar) | O Claude, sozinho | Anota o porquê na tarefa do `TASKS.md`, para você conferir depois |
-| **Se ficou pronto** | Os testes e o agente revisor | Nem você nem a IA "achando" que terminou |
-| **Difícil** (escolha de desenho importante) | Um conselho de modelos (skill `llm-council`), e você confirma | Entra no `duvidas.md` como "decidido pelo conselho, para confirmar" |
-| **Permissão** (publicar, mexer em produção, apagar algo) | Sempre você | Nada disso acontece sem o seu OK |
-| **O que só você sabe** (regra de negócio, prioridade, opções que mudam o produto) | Você | Vai para o `duvidas.md` com as opções e uma recomendação |
-| **As decisões em aberto de cada pedido** | Você, numa entrevista | Todo pedido novo começa pela skill `grilling` (ou você chama `/grill-me`): o Claude pergunta em rodadas, sempre com a resposta que recomenda, até não sobrar decisão suposta. Pedido sem decisão sua (rodar testes, corrigir um typo) passa direto |
+| **Regras e ferramentas do Claude** (`claude/`) | `~/.claude`, valendo para todos os seus projetos | Ensinam o método ao Claude e trazem os agentes, skills, hooks e workflows que ele usa |
+| **Painel da sessão** (`painel/`) | `~/painel-da-sessao` | Página no navegador (e no celular) que mostra o que a sessão está fazendo e deixa você responder perguntas de longe |
+| **Projeto modelo** (`projeto-modelo/`) | Você copia para cada projeto novo | Esqueleto com tarefas, dúvidas, bateria de testes, CI e registros já ligados ao método |
 
-Uma pergunta para você não para o trabalho todo: só a tarefa que depende dela fica esperando, e o resto segue. Pergunta
-urgente chega no celular (ntfy) e pode ser respondida pela aba Perguntas do painel. As outras você resolve de uma vez
-quando voltar.
+### Por que existe
 
-### Peça por peça
+Quem usa IA para programar esbarra sempre nos mesmos problemas. O método ataca cada um com uma regra concreta.
 
-**Regras (`claude/CLAUDE.md` e `claude/RTK.md`).** É o "manual do funcionário" do Claude: o método inteiro escrito
-como instrução. O Claude Code lê esses arquivos no começo de toda sessão.
-
-**Agentes (`claude/agents/`).** Subagentes com o mínimo de ferramentas para a função. Menos ferramentas, menos tokens
-gastos a cada chamada.
-
-| Agente | Pode | Usado para |
-|---|---|---|
-| `runner` | só rodar comandos | rodar testes e scripts e resumir o resultado |
-| `searcher` | só ler e buscar | achar onde algo está definido ou quem chama uma função |
-| `editor` | ler e editar | aplicar uma mudança pequena e já definida num arquivo conhecido |
-| `doc-writer` | ler e criar arquivo | escrever um arquivo novo do zero a partir de uma especificação |
-| `researcher` | só web | consultar documentação externa, sem acesso aos seus arquivos |
-
-**Skills (`claude/skills/`).** Instruções prontas que o Claude carrega quando a situação pede.
-
-| Skill | O que faz |
+| Problema | Como o método resolve |
 |---|---|
-| `preflight` | Antes de codar, confere se a solução já existe no projeto, na linguagem ou numa biblioteca instalada |
-| `session-handoff` | No fim de uma sessão longa, guarda o que importa e escreve o resumo para a próxima sessão continuar |
-| `notify` | Manda aviso para o celular (ntfy) quando você pede "me avisa quando terminar" |
-| `painel` | Liga o painel da sessão para o projeto atual (`/painel`) |
-| `snote` | Salva o resumo da conversa como nota no seu vault do Obsidian (`/snote`) |
-| `commit-curto` | Mensagem de commit curta, em português, no padrão `tipo(escopo): descrição` |
-| `pr-curto` | Título e corpo de PR curtos, no template certo do projeto |
-
-**Workflows (`claude/workflows/`).** Roteiros com vários agentes, para trabalho maior.
-
-- `fazer-revisar-corrigir.js`: recebe um lote de tarefas já especificadas. Para cada uma, um agente faz, outro revisa
-  e outro corrige, em paralelo, cada tarefa no seu worktree.
-- `revisao-profunda.js`: revisão pesada antes de publicar. Um revisor por dimensão (correção, segurança, concorrência,
-  dados, testes e, se pedir, LGPD), e cada achado é testado por "céticos" que tentam derrubá-lo. Só lê, não muda nada.
-
-**Hooks (`claude/hooks/`).** Regras que viram barreira, sem depender de o Claude lembrar. Ligados pelo
-`settings.example.json`; qualquer erro deles deixa passar, nunca trava o trabalho.
-
-| Hook | O que faz | Desligar na sessão |
-|---|---|---|
-| `ler_grande.py` | Nega ler inteiro um arquivo de código de 32 KB ou mais e manda usar Serena, ccc ou `Read` com `offset`/`limit` | `OPTIMUS_LER_TUDO=1` |
-| `so_subagente_edita.py` | Em projeto com `TASKS.md`, nega a sessão principal editando código: quem edita é subagente. `.md`, `registros/`, `docs/`, `.claude/` e a memória ficam livres | `OPTIMUS_PRINCIPAL_EDITA=1` |
-| `contexto_baixo.py` | Com o contexto em 70% (e de novo em 85%), avisa o próprio Claude para fechar o passo e rodar o `session-handoff`. Lê a porcentagem da statusline do painel | tirar do `settings.json` |
-
-Testes: `python3 -m unittest discover -s claude/hooks`.
-
-**Comando `/stop` (`claude/commands/`).** Para na hora o que estiver em andamento.
-
-**Mods (`claude/mods/`).** Mudam a interface do Claude Code: `status-bar` (linha de status com git, modelo,
-contexto, limites de uso e consumo dos subagentes) e `painel-agentes` (painel lateral com os agentes rodando).
-
-**Scripts (`claude/scripts/`).** `install_skills.py` instala pacotes de skills de um repositório git,
-`plugin_audit.py` mostra quanto cada plugin ligado custa em tokens por sessão, e `vault_search.py` faz busca compacta
-no vault do Obsidian.
-
-**Painel (`painel/`).** Servidor local em Python, só com a biblioteca padrão. Mostra tarefas, agentes, baterias de
-teste, worktrees, consumo de tokens e limites de 5 h e da semana. A aba Perguntas deixa você responder pelo celular
-o que a sessão está esperando. Os testes dele rodam com `python3 testar.py`, que escolhe só os ligados ao que mudou.
-
-**Projeto modelo (`projeto-modelo/`).**
-
-| Arquivo | Para que serve |
-|---|---|
-| `CLAUDE.md` | O que o seu projeto é e o que não é; os comandos de teste dele |
-| `BOAS-PRATICAS.md` | As regras de código do projeto |
-| `TASKS.md` | A fila de tarefas `Tn`, com estado de cada uma |
-| `duvidas.md` | O que espera decisão sua |
-| `scripts/testar_como_o_ci.py` e `scripts/o_que_testar.py` | A bateria: roda na máquina o que o CI rodaria, só para o que o diff toca |
-| `scripts/noite.py` e `scripts/noite_guarda.py` | O modo noturno: roda a fila do `TASKS.md` sozinho até esvaziar (veja [Modo noturno](#modo-noturno)) |
-| `registros/` | As provas: baterias, revisões, correções e publicações pendentes; e `padroes.md`, as lições das revisões que todo agente lê antes de implementar |
-| `.github/workflows/testes.yml` | O CI, que roda só no PR para a `main` e no push da `main` |
-| `.github/PULL_REQUEST_TEMPLATE/` | Templates de PR: `padrao`, `publicacao` (dev → main) e `correcao-urgente` |
-| `.githooks/commit-msg` | Recusa commit fora de `tipo(escopo): descrição` ou com autoria de IA. Ligar: `git config core.hooksPath .githooks` |
-| `.claude/skills/` | `publicar` (da `dev` até a produção), `aplicar-migration` (mudança de banco testada com rollback) e `conferir-producao` (ver se a produção está saudável) |
+| A conversa fica enorme, o contexto estoura e a qualidade cai | A sessão principal só decide e confere. Código, testes e textos longos vão para subagentes, que devolvem um resumo curto. Uma sessão nova a cada fase, com handoff pronto |
+| A IA diz "pronto" sem ter testado | TDD obrigatório: o teste nasce primeiro e tem de **falhar** antes da correção. A sessão principal confere o vermelho rodando o teste novo contra o código antigo |
+| Ninguém revisa de verdade | Quem faz não revisa. Outro agente lê o diff e devolve problemas com `arquivo:linha` e gravidade; um terceiro corrige. Até 3 rodadas |
+| Gasto alto de tokens e de minutos de CI | Ferramentas que cortam a saída bruta (rtk, caveman, context-mode, Serena, ccc). Testes rodam na máquina, só do que o diff toca. O CI no GitHub roda só no PR para a `main` |
+| Pergunta trava o trabalho quando você não está no PC | A tarefa que depende de você vai para o `duvidas.md` e o resto segue. Perguntas urgentes chegam no celular (ntfy) e se respondem pela aba Perguntas do painel |
+| Nada prova que se testou e corrigiu | Toda bateria, revisão e correção vira um registro com data, commit e sha256 |
+| Mudança vai para produção sem ninguém pedir | `main` protegida, só por PR vindo da `dev`. Publicar só com o seu pedido |
 
 ### Glossário rápido
 
@@ -173,27 +134,351 @@ o que a sessão está esperando. Os testes dele rodam com `python3 testar.py`, q
 | **Worktree** | Uma segunda pasta do mesmo repositório, para dois agentes trabalharem sem pisar um no outro |
 | **Registro de garantia** | A linha em `registros/` que prova que algo foi testado ou revisado, com commit e sha256 |
 | **Skill** | Um pacote de instruções que o Claude carrega quando a situação pede |
+| **Hook** | Um script que o Claude Code roda sozinho antes ou depois de uma ferramenta, e que pode negar a ação |
 | **MCP** | Protocolo para ligar ferramentas externas ao Claude (por exemplo a Serena, que navega o código por símbolo) |
+| **Grilling** | A entrevista que abre todo pedido: perguntas em rodadas, cada uma com a resposta recomendada |
+| **ntfy** | Serviço de notificação no celular por "tópico"; quem assina o tópico recebe a mensagem |
 
-## Por que existe
+## Como tudo se conecta
 
-Quem usa IA para programar esbarra sempre nos mesmos problemas. O método ataca cada um com uma regra concreta.
-
-| Problema | Como o método resolve |
-|---|---|
-| A conversa fica enorme, o contexto estoura e a qualidade cai | A sessão principal só decide e confere. Código, testes e textos longos vão para subagentes, que devolvem um resumo curto. Uma sessão nova a cada fase, com handoff pronto |
-| A IA diz "pronto" sem ter testado | TDD obrigatório: o teste nasce primeiro e tem de **falhar** antes da correção. A sessão principal confere o vermelho rodando o teste novo contra o código antigo |
-| Ninguém revisa de verdade | Quem faz não revisa. Outro agente lê o diff e devolve problemas com `arquivo:linha` e gravidade; um terceiro corrige. Até 3 rodadas |
-| Gasto alto de tokens e de minutos de CI | Ferramentas que cortam a saída bruta (rtk, caveman, context-mode, Serena, ccc). Testes rodam na máquina, só do que o diff toca. O CI no GitHub roda só no PR para a `main` |
-| Pergunta trava o trabalho quando você não está no PC | A tarefa que depende de você vai para o `duvidas.md` e o resto segue. Perguntas urgentes chegam no celular (ntfy) e se respondem pela aba Perguntas do painel |
-| Nada prova que se testou e corrigiu | Toda bateria, revisão e correção vira um registro com data, commit e sha256 |
-| Mudança vai para produção sem ninguém pedir | `main` protegida, só por PR vindo da `dev`. Publicar só com o seu pedido |
-
-## Como funciona
+O caminho de um pedido, da regra até a `main`, e as peças laterais que observam, instalam ou automatizam:
 
 ```mermaid
 flowchart TD
-    A["Você faz um pedido"] --> B["Sessão principal registra a tarefa Tn no TASKS.md"]
+    V["Você (cliente)"] -->|"pedido"| S["Sessão coordenadora<br/>carrega ~/.claude/CLAUDE.md e o CLAUDE.md do projeto"]
+    S --> G["Skill grilling<br/>perguntas com recomendação"]
+    G -->|"pergunta que trava"| N["ntfy: NTFY_TOPICO_PERGUNTA<br/>aviso no celular"]
+    G --> T["TASKS.md (Tn) e duvidas.md (D-n, P-n)"]
+    T --> TP["scripts/tarefa.py Tn<br/>brief em JSON"]
+    TP --> W["Subagentes em worktree<br/>fazer, revisar, corrigir (até 3 rodadas)"]
+    H["Hooks: ler_grande.py, so_subagente_edita.py, contexto_baixo.py"] -.->|"negam ou avisam"| S
+    H -.-> W
+    W --> C["Commit na branch<br/>skill commit-curto + .githooks/commit-msg"]
+    C --> B["Bateria: testar_como_o_ci.py<br/>pelo mapa o_que_testar.py"]
+    B --> R["registros/: baterias/, revisoes/, padroes.md, INDICE.md"]
+    R --> D["merge --no-ff na dev"]
+    D -->|"você pede publicar"| P["Skills publicar e pr-curto<br/>PR dev para main"]
+    P --> CI["CI: .github/workflows/testes.yml<br/>check tudo-verde"]
+    CI --> M["main (produção)"]
+
+    subgraph Laterais
+        I["install.py<br/>claude/ para ~/.claude, painel/ para ~/painel-da-sessao, mescla settings"]
+        PA["Painel ~/painel-da-sessao<br/>lê sessões, TASKS.md, duvidas.md, registros/; aba Perguntas"]
+        NOITE["noite.py + noite_guarda.py<br/>laço sobre o TASKS.md"]
+        AR["arquivar.py<br/>tarefas no ar e dúvidas resolvidas para docs/"]
+        ORC["orcamento_contexto.py<br/>tokens fixos por sessão"]
+    end
+
+    I -.->|"instala"| S
+    PA -.->|"lê"| T
+    PA -.->|"lê"| R
+    PA -->|"resposta pelo celular"| S
+    NOITE -.->|"uma sessão nova por tarefa"| T
+    P -.->|"no fim"| AR
+    ORC -.->|"mede"| S
+```
+
+Em palavras:
+
+1. **As regras** (`~/.claude/CLAUDE.md`) dizem ao Claude como trabalhar. Elas mandam começar todo pedido pelo
+   **grilling**, registrar tudo no **`TASKS.md`** e no **`duvidas.md`**, e passar o trabalho a **subagentes**.
+2. O **brief** de cada subagente sai do `scripts/tarefa.py`, sem reler o `TASKS.md` inteiro. Cada subagente que edita
+   trabalha no seu **worktree**, num ciclo **fazer, revisar, corrigir**.
+3. Os **hooks** valem o tempo todo: impedem a sessão principal de editar código, de ler arquivo grande inteiro, e a
+   avisam quando o contexto está acabando.
+4. A sessão principal **commita** (o hook `commit-msg` recusa mensagem fora do padrão), roda a **bateria** só do diff, e
+   cada rodada vira um **registro**. Verde: **merge na `dev`**.
+5. Só quando você pede, a skill **`publicar`** abre o PR `dev → main`, o **CI** roda e o merge leva à produção.
+6. Ao lado: o **painel** mostra tudo e recebe as suas respostas; o **modo noturno** roda a fila sozinho; o
+   **`arquivar.py`** mantém os arquivos de estado pequenos; o **`orcamento_contexto.py`** mede o custo fixo; e o
+   **`install.py`** põe tudo no lugar.
+
+## Cada peça
+
+Cada componente com: o que é, quando entra em ação, o que lê, o que grava, com quem conversa e como configurar ou
+desligar. Os caminhos são do repositório; entre parênteses, onde ficam depois de instalar.
+
+### O que vem no repositório
+
+```
+OptimusClaude/
+├── CLAUDE.md           instruções para o Claude quando alguém abre esta pasta (instalar; desenvolver aqui)
+├── install.py          instala tudo e checa dependências; roda em Linux, macOS, WSL e Windows
+├── install.sh          embrulho: confere o python3 e chama o install.py
+├── install.ps1         o mesmo no Windows (oferece instalar o Python pelo winget)
+├── test_install.py     testes do install.py
+├── claude/             vai para ~/.claude
+│   ├── CLAUDE.md       regras globais: o método, escrito como instrução ao Claude
+│   ├── RTK.md          instruções do rtk, importadas pelo CLAUDE.md
+│   ├── agents/         runner, searcher, editor, researcher, doc-writer (cada um com o mínimo de tools)
+│   ├── skills/         notify, painel, preflight, session-handoff, snote, commit-curto, pr-curto
+│   ├── workflows/      fazer-revisar-corrigir.js, revisao-profunda.js
+│   ├── hooks/          ler_grande.py, so_subagente_edita.py, contexto_baixo.py
+│   ├── commands/       /stop
+│   ├── mods/           status-bar e painel-agentes (plugins locais de interface)
+│   ├── scripts/        orcamento_contexto.py, plugin_audit.py, install_skills.py, vault_search.py
+│   ├── statusline/     linha de status avulsa
+│   └── settings.example.json
+├── painel/             vai para ~/painel-da-sessao: painel web local da sessão (Python, só biblioteca padrão)
+├── projeto-modelo/     para copiar para o seu projeto: CLAUDE.md, BOAS-PRATICAS.md, TASKS.md, duvidas.md,
+│                       scripts/ (bateria, mapa, tarefa, arquivar, modo noturno, registros), registros/, CI,
+│                       hook de commit, skills publicar, aplicar-migration e conferir-producao
+└── docs/               o método explicado
+```
+
+### Regras globais: `claude/CLAUDE.md` e `claude/RTK.md` (`~/.claude/`)
+
+- **O que é:** o "manual do funcionário" do Claude: o método inteiro escrito como instrução (grilling, TDD, subagentes,
+  modelo pela dificuldade, branches, aviso no celular, economia de tokens, sem coautoria de IA). O `RTK.md` é importado
+  por ele (`@RTK.md`).
+- **Quando:** o Claude Code carrega no começo de toda sessão, em qualquer projeto.
+- **Conversa com:** o `CLAUDE.md` de cada projeto, que manda no domínio dele e pode apertar estas regras.
+- **Configurar:** edite no repositório e rode `python3 install.py` de novo (o antigo vai para o backup).
+
+### Grilling: a entrevista que abre todo pedido
+
+- **O que é:** a skill `grilling` (de terceiros, de [mattpocock/skills](https://github.com/mattpocock/skills); o
+  `/grill-me` só a chama). O Claude levanta os fatos sozinho, monta a árvore de decisões que são suas e pergunta em
+  rodadas, cada pergunta com a resposta que ele recomenda.
+- **Quando:** antes de `preflight`, plano ou código, em todo pedido novo. Pedido sem decisão sua ("roda os testes",
+  "corrige este typo") passa direto, com uma linha dizendo isso. Urgente ou com você fora: ele decide pela
+  recomendação e registra no `duvidas.md` como "para confirmar".
+- **Conversa com:** o ntfy (aviso antes da pergunta), o `duvidas.md` e a aba Perguntas do painel.
+- **Instalar:** `npx skills add mattpocock/skills@grilling -g -y` e `npx skills add mattpocock/skills@grill-me -g -y`
+  ([docs/dependencias.md](docs/dependencias.md)). No modo noturno ela não é usada.
+
+### Preflight: `claude/skills/preflight`
+
+- **O que é:** antes de codar, confere se a solução já existe no projeto, na linguagem ou numa biblioteca instalada, e se
+  há caminho mais simples.
+- **Quando:** antes de toda tarefa não trivial (regra do `CLAUDE.md`).
+
+### Tarefas e dúvidas: `TASKS.md` e `duvidas.md` (no projeto)
+
+- **O que é:** os arquivos de estado. O `TASKS.md` é a fila de tarefas `Tn` (origem com as suas palavras, objetivo,
+  fazer, evidência, como conferir, agente sugerido e estado). O `duvidas.md` guarda o que espera você: permissões (`P-n`)
+  e decisões (`D-n`), com opções em letras e a recomendada marcada, para a resposta caber numa linha ("D-1 a").
+- **Estados da tarefa:** `aprovada` → `em andamento` → `feita na dev` → `no ar`.
+- **Quem grava:** a sessão principal (o hook deixa ela editar `.md`).
+- **Quem lê:** a sessão, o `scripts/tarefa.py`, o painel e o modo noturno.
+
+| Script | Uso | O que faz |
+|---|---|---|
+| `scripts/tarefa.py` | `python3 scripts/tarefa.py T7` | Imprime só a seção da T7 e as dúvidas abertas que a citam (saída 1 se não existir) |
+| `scripts/tarefa.py` | `python3 scripts/tarefa.py` | Lista as tarefas que ainda não estão no ar: "Tn · título · estado" |
+| `scripts/arquivar.py` | `python3 scripts/arquivar.py` | Move tarefas "no ar" para `docs/tarefas-feitas.md` e dúvidas com `**Resposta (...)**` para `docs/duvidas-resolvidas.md`. Nada se apaga; rodar de novo não muda nada |
+
+O `docs/publicacao-pendente.md` do projeto completa o trio: o que muda para quem usa na próxima publicação. Vira o corpo
+do PR `dev → main` e recomeça vazio.
+
+### Agentes: `claude/agents/` (`~/.claude/agents/`)
+
+Subagentes com o mínimo de ferramentas para a função. Cada ferramenta disponível pesa no contexto fixo de todo spawn:
+menos ferramentas, menos tokens.
+
+| Agente | Ferramentas | Usado para |
+|---|---|---|
+| `runner` | Bash | Rodar testes e scripts e resumir o resultado |
+| `searcher` | Read, Glob, Grep | Achar onde algo está definido ou quem chama uma função |
+| `editor` | Read, Edit | Aplicar uma mudança pequena e já definida num arquivo conhecido |
+| `doc-writer` | Read, Write | Escrever um arquivo novo do zero a partir de uma especificação |
+| `researcher` | WebFetch, WebSearch | Consultar documentação externa, sem acesso aos seus arquivos |
+
+- **Como conversam:** o brief vai em JSON minificado, só com o necessário; o retorno também. Quem afirma algo sobre o
+  código devolve `fontes` (`arquivo:linha`), `confianca` e `lacunas`.
+- **Quem faz o quê, e com qual modelo:** o modelo é escolhido **pela dificuldade que sobra de decidir**, não pela área,
+  e o effort nunca é `low`.
+
+| Modelo | Quando | Effort |
+|---|---|---|
+| **Haiku** | Tarefa sem decisão: rodar um comando e resumir, aplicar patch já escrito, renomear | `medium` |
+| **Sonnet** | O padrão: implementar e corrigir com especificação clara, revisar diff comum | `high` (`medium` para edição pequena já especificada) |
+| **Opus** | Raciocínio difícil: desenho em aberto, concorrência, segurança, causa desconhecida, segunda tentativa de algo que travou | `high`; `xhigh`/`max` para o mais difícil |
+
+Antes de lançar, a sessão mostra a tabela tarefa → dificuldade → modelo → effort. Detalhe:
+[docs/agentes-e-modelos.md](docs/agentes-e-modelos.md).
+
+### Workflows: `claude/workflows/` (`~/.claude/workflows/`)
+
+Roteiros com vários agentes, para trabalho maior. Gastam bem mais que agentes comuns: a regra manda avisar o custo antes
+e usar só quando pedidos ou como último recurso.
+
+| Workflow | O que faz | Lê e grava |
+|---|---|---|
+| `fazer-revisar-corrigir.js` | Recebe um lote de tarefas já especificadas (`args.tarefas: [{id, worktree, brief, ...}]`). Para cada uma, um agente faz, outro revisa e, enquanto houver problema alto ou médio, outro corrige, até `rodadas` (padrão 3). Tarefas em paralelo, cada uma no seu worktree (sem worktree é recusada) | Edita só dentro dos worktrees; não roda `git`. Devolve, por tarefa, entrega, revisão final e histórico |
+| `revisao-profunda.js` | Revisão pesada antes de publicar: um revisor por dimensão (correção, segurança, concorrência, dados, testes e, se pedir, `lgpd`), e cada achado é testado por céticos independentes que tentam derrubá-lo. Com `tudo: true`, revisa o repositório inteiro | Só lê. O JSON de saída pode ser guardado com `salvar_revisao.py` |
+
+### Hooks: `claude/hooks/` (`~/.claude/hooks/`)
+
+Regras que viram barreira, sem depender de o Claude lembrar. Ligados no `settings.json` (o `settings.example.json` já
+traz os três). Qualquer erro deles deixa passar: nunca travam o trabalho.
+
+| Hook | Evento | Quando age | O que faz | Desligar numa sessão |
+|---|---|---|---|---|
+| `ler_grande.py` | PreToolUse `Read` | Leitura sem `offset`/`limit` de arquivo de código (`.py`, `.js`, `.ts`, `.go`, `.sql` e outros) com 32 KB ou mais | Nega e manda usar Serena, `ccc`, `rtk grep` ou `Read` com `offset`/`limit`. Markdown, yaml, json e afins passam | `OPTIMUS_LER_TUDO=1` |
+| `so_subagente_edita.py` | PreToolUse `Write`, `Edit`, `MultiEdit`, `NotebookEdit` | Só em projeto do método (há um `TASKS.md` subindo a partir do arquivo) e só na sessão principal | Nega a sessão principal editando código e manda delegar. Livres: qualquer `.md`, e o que estiver em `registros/`, `docs/`, `.claude/` ou `~/.claude`. Subagente passa sempre | `OPTIMUS_PRINCIPAL_EDITA=1` |
+| `contexto_baixo.py` | PostToolUse | Contexto da sessão principal em 70% e de novo em 85% (uma vez cada) | Avisa o próprio Claude para fechar o passo e rodar o `session-handoff`. Lê a porcentagem que a statusline do painel grava em `~/.cache/claude-limites/sessoes/<sessão>.json` (ou `CLAUDE_LIMITES_DIR`); retrato com mais de 10 min é ignorado. Sem a statusline do painel, não faz nada | tirar do `settings.json` |
+
+Testes: `python3 -m unittest discover -s claude/hooks`.
+
+### Commit: skill `commit-curto` e `.githooks/commit-msg` (no projeto)
+
+- **O que é:** a skill escreve a mensagem curta, em português, no padrão `tipo(escopo): descrição`. O hook do git
+  confere: tipos `feat fix docs test refactor perf build ci chore style revert`, até 72 caracteres, sem ponto final,
+  linha em branco antes do corpo e **nenhuma autoria de IA** (`Co-Authored-By` de IA, "Generated with"). Merge, revert,
+  `fixup!` e `squash!` gerados pelo git passam.
+- **Quando:** em todo commit, inclusive os do modo noturno.
+- **Ligar:** `git config core.hooksPath .githooks` no clone. Desligar: `git config --unset core.hooksPath`.
+- O `settings.example.json` também zera `attribution` e põe `includeCoAuthoredBy: false`.
+
+### Bateria: `scripts/testar_como_o_ci.py` e `scripts/o_que_testar.py` (no projeto)
+
+- **O que é:** roda na máquina o que o CI rodaria para o que mudou. O `o_que_testar.py` é o mapa (caminho →
+  verificações), o mesmo que o CI usa. Caminho que o mapa não conhece roda tudo.
+- **Quando:** antes de todo merge na `dev`, e completa antes do PR para a `main`.
+- **Lê:** o diff contra a base (padrão `dev`), o que não foi commitado e os arquivos novos.
+- **Grava:** um resumo em `registros/baterias/` (data, branch, commit, hash da árvore, passos, duração, sha256 do log) e o
+  log completo comprimido **fora** do repositório, em `REGISTROS_FORA` (padrão `~/.local/share/registros-de-garantia`).
+- **Não para na primeira falha:** marca cada passo `OK`, `FALHOU` ou `PULADO` (programa que falta). Sai com 1 se algo
+  falhar.
+
+| Comando | Quando |
+|---|---|
+| `python3 scripts/testar_como_o_ci.py` | Antes de todo merge na `dev` |
+| `ARQUIVOS=lista.txt python3 scripts/testar_como_o_ci.py` | Depois de um conserto: só os arquivos dele |
+| `EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py` | Antes do PR para a `main`: tudo, e `PULADO` também reprova |
+| `SO_DECIDIR=1 python3 scripts/testar_como_o_ci.py` | Ver o que rodaria, sem rodar |
+| `REGISTRO=0 python3 scripts/testar_como_o_ci.py` | Não gravar o registro (o CI usa) |
+
+**Linguagens.** O fluxo não depende de linguagem; depende de cada uma ter um executor de teste, um linter e (quando
+existe) um verificador de tipos por linha de comando. Cada um vira uma linha em `VERIFICACOES` e no `MAPA`.
+
+| Linguagem | Teste | Lint e tipos |
+|---|---|---|
+| Python | `pytest` | `ruff`, `mypy` ou `pyright` |
+| TypeScript e JavaScript | `vitest`, Playwright (tela) | `eslint`, `tsc` |
+| SQL e PostgreSQL | testes em transação que se desfaz | verificador do banco |
+| Bash | `bats` ou teste em Python | `shellcheck` |
+| PowerShell, Deno, Docker, GitHub Actions | `Pester`, `deno test`, build da imagem | `PSScriptAnalyzer`, `deno lint`, `hadolint`, `actionlint` |
+| Go, Rust, Java, C#, Ruby, PHP | exemplos de linha para o mapa | ver o doc |
+
+Tabela completa e como acrescentar outra: [docs/linguagens.md](docs/linguagens.md). TDD, telas e limite de memória:
+[docs/testes-e-qualidade.md](docs/testes-e-qualidade.md).
+
+### Registros de garantia: `registros/` e `scripts/registros/` (no projeto)
+
+Provas de diligência: o que rodou, quando, sobre qual commit, o que achou e como foi corrigido. Não prometem que não há
+falha. Registro nunca se apaga.
+
+| O quê | O que guarda | Quem grava |
+|---|---|---|
+| `registros/baterias/*.md` | Resumo de cada rodada da bateria | a bateria, sozinha |
+| `registros/revisoes/*.md` | Relatório de cada revisão (`AAAA-MM-DD-<tipo>.md`) | `python3 scripts/registros/salvar_revisao.py <tipo> <arquivo>`, que **recusa** relatório com segredo ou dado pessoal (padrões em `sensivel.py`) |
+| `registros/correcoes.md` | Cada achado corrigido (`C-001`...), com commit e o teste que prova | à mão |
+| `registros/padroes.md` | As lições das revisões, uma linha cada, no máximo ~60 linhas. **Todo agente que implementa lê antes de começar** | a sessão principal, com o campo `licoes` do revisor |
+| `registros/INDICE.md` | O sha256 de cada arquivo da pasta | `python3 scripts/registros/indice.py`, na `dev` (`--conferir` sai com 1 se não bate) |
+
+Como provar que um log é aquele, e quando cada registro entra no git: `projeto-modelo/registros/README.md`.
+
+### Publicação: skills `publicar` e `pr-curto`, e o CI (no projeto)
+
+- **`publicar`** (`projeto-modelo/.claude/skills/publicar`): leva a `dev` até a produção, só com pedido explícito. A
+  ordem: a `main` junta na `dev`; `EXIGIR_TUDO=1` na `dev`; revisões de segurança só no diff `origin/main...dev`
+  (`/security-review`, Claude Security, `semgrep`, `insecure-defaults:audit`); registros e índice commitados; PR
+  `dev → main`; CI; migrations; tags `antes-da-publicacao-*` e `testado-*`; merge (`gh pr merge --merge`, nunca `--admin`
+  nem `--delete-branch`); conferir a produção; `arquivar.py`.
+- **`pr-curto`** (`claude/skills/pr-curto`): título no padrão do commit e corpo no template certo
+  (`.github/PULL_REQUEST_TEMPLATE/`: `padrao`, `publicacao`, `correcao-urgente`), prontos **antes** do
+  `gh pr create` (editar depois dispara outra rodada de CI).
+- **CI** (`.github/workflows/testes.yml`): roda só no PR para a `main` e no push da `main`. Job `origem-da-main` reprova
+  PR que não saia da `dev`; job `testes` roda a mesma bateria (só o diff no PR, tudo no push); `tudo-verde` é o único
+  check que a proteção da `main` exige.
+- **`aplicar-migration`** e **`conferir-producao`** (`projeto-modelo/.claude/skills/`): mudança de banco testada com
+  rollback (exemplo com a CLI do Supabase) e checagem de que a produção está saudável.
+
+Detalhe de cada passo: [docs/fluxo-de-trabalho.md](docs/fluxo-de-trabalho.md).
+
+### Painel da sessão: `painel/` (`~/painel-da-sessao`)
+
+- **O que é:** servidor local em Python, só biblioteca padrão. Mostra tarefas com %, agentes, workflows, shells em
+  segundo plano, baterias, worktrees, consumo de tokens e limites de 5 h e da semana.
+- **Ligar:** dentro do Claude Code, na pasta do projeto, `/painel` (a skill `painel` roda
+  `python3 ~/painel-da-sessao/ativar.py "$PWD"`). Ele mostra o endereço no PC (`http://127.0.0.1:8765`) e o link com
+  chave para o celular, na mesma rede. Parar: `kill $(cat ~/painel-da-sessao/servidor.pid)`.
+- **Lê:** os `.jsonl` da sessão em `~/.claude/projects/<projeto>/`, o `TASKS.md`, o `duvidas.md`,
+  `docs/publicacao-pendente.md`, `registros/baterias/`, os logs `~/.cache/bateria-*.log`, os worktrees em `../wt` e os
+  limites em `~/.cache/claude-limites`. Sem um desses arquivos, o quadro fica vazio.
+- **Grava:** só na própria pasta (`config.json`, `chave.txt`, `perguntas.json`, `respostas/`, `servidor.log`,
+  `servidor.pid`).
+- **Aba Perguntas:** a sessão põe a pergunta em `perguntas.json`; você responde pelo celular; a resposta vai para
+  `respostas/pendentes/`; o `esperar_resposta.py`, que a sessão deixa rodando em segundo plano, imprime `RESPOSTA <json>`
+  e a sessão aplica.
+- **Linha de status:** `painel/statusline.py` (a do `settings.example.json`) mostra contexto e limites e grava o retrato
+  que o hook `contexto_baixo.py` lê. Há uma avulsa em `claude/statusline/statusline.py`, que o Windows usa.
+- **Limites:** HTTP sem TLS, só para rede local de confiança. Usa `/proc`, `ps` e `ip`: completo só no Linux (ou WSL).
+- **Configurar:** `config.json` (porta, ramo, nomes de arquivo e outros). Testes: `cd painel && python3 testar.py`.
+
+Tudo sobre o painel: [painel/README.md](painel/README.md).
+
+### Aviso no celular: skill `notify` e ntfy
+
+- **O que é:** aviso curto no celular pelo [ntfy](https://ntfy.sh), por `curl`.
+- **Quando:** antes de toda pergunta que trava o trabalho (tópico `NTFY_TOPICO_PERGUNTA`, regra do `CLAUDE.md`); quando
+  você pede "me avisa quando terminar" (skill `notify`, tópico `NTFY_TOPICO`); no fim do modo noturno (`NTFY_TOPICO`).
+- **Configurar:** as duas variáveis no `env` do `~/.claude/settings.json`. Sem `NTFY_TOPICO_PERGUNTA`, o Claude pula o
+  aviso e pergunta direto.
+- **Cuidado:** o tópico é público pelo nome. Use sufixo aleatório e mande só o assunto curto.
+
+Passo a passo: [docs/instalacao.md](docs/instalacao.md#aviso-no-celular-ntfy).
+
+### Outras skills e o comando `/stop`: `claude/skills/`, `claude/commands/`
+
+| Skill | O que faz |
+|---|---|
+| `session-handoff` | No fim de uma sessão longa, guarda o que importa e escreve o resumo para a próxima sessão continuar (o que foi feito, o que falhou e por quê, o próximo passo) |
+| `snote` | Salva o resumo da conversa como nota no seu vault do Obsidian (`/snote`; precisa de `OBSIDIAN_VAULT`) |
+| `painel`, `notify`, `preflight`, `commit-curto`, `pr-curto` | Descritas acima |
+
+O comando `/stop` para na hora o que estiver em andamento.
+
+### Mods de interface: `claude/mods/` (`~/.claude/mods`)
+
+Plugins locais em TypeScript: `status-bar` (linha de status com git, modelo, contexto, limites de uso e consumo dos
+subagentes) e `painel-agentes` (painel lateral com os agentes rodando). O `install.py` registra o marketplace local
+`optimus-mods` e instala os dois. Detalhe: [claude/mods/README.md](claude/mods/README.md).
+
+### Scripts de apoio: `claude/scripts/` (`~/.claude/scripts/`)
+
+| Script | O que faz |
+|---|---|
+| `orcamento_contexto.py` | Estima quantos tokens entram em toda sessão antes de você digitar nada (veja [Economia de tokens](#economia-de-tokens)) |
+| `plugin_audit.py` | Mostra quanto cada plugin ligado custa em tokens por sessão |
+| `install_skills.py` | Instala um pacote de skills de um repositório git (`python3 ~/.claude/scripts/install_skills.py <dono/repo>`) |
+| `vault_search.py` | Busca compacta no vault do Obsidian (usado pelo `/snote`) |
+
+### Instalador: `install.py`, `install.sh`, `install.ps1`
+
+- **O que é:** copia `claude/` para `~/.claude` (ou `$CLAUDE_CONFIG_DIR`) e `painel/` para `~/painel-da-sessao`, com
+  backup do que for substituído; cria o `settings.json` se não existir (ou mescla com `--mesclar-settings`); confere as
+  dependências e instala as que têm instalador seguro (`npm`, `uv tool`); registra o MCP da Serena, os plugins e os mods;
+  lista o que falta; mostra o orçamento de contexto.
+- **Opções:** `--dry-run`, `--so-checar`, `--sem-plugins`, `--sem-skills`, `--mesclar-settings`, `--help`.
+- **Skills de terceiros:** instala com `npx skills add` as que o método usa sempre (`grill-me`, `grilling`,
+  `find-skills`, `playwright-cli`, `security-and-hardening`, `security-threat-model`, `semgrep`). Qual skill usar em cada
+  situação: tabela "Skills por situação" do [`claude/CLAUDE.md`](claude/CLAUDE.md).
+- **Testes:** `python3 -m unittest test_install`.
+
+Detalhe: [docs/instalacao.md](docs/instalacao.md).
+
+## Um pedido do começo ao fim
+
+Um exemplo inteiro, com o arquivo e o comando de cada passo. O projeto já foi criado a partir do `projeto-modelo/`
+([docs/comecar-um-projeto.md](docs/comecar-um-projeto.md)) e você está na `dev`.
+
+```mermaid
+flowchart TD
+    A["Você faz um pedido"] --> GR["Grilling: perguntas com recomendação"]
+    GR --> B["Sessão principal registra a tarefa Tn no TASKS.md"]
     B --> C{"Depende de decisão sua?"}
     C -- sim --> D["Vai para o duvidas.md; o resto segue"]
     C -- não --> E["Plano curto e tabela: tarefa, dificuldade, modelo, effort"]
@@ -211,189 +496,99 @@ flowchart TD
     O --> P["PR dev para main"]
     P --> Q["CI verde"]
     Q --> R["Merge e publicação"]
+    R --> S["arquivar.py"]
 ```
 
-Detalhe de cada passo: [docs/fluxo-de-trabalho.md](docs/fluxo-de-trabalho.md).
+**1. Abrir a sessão.** Você abre o Claude Code na pasta do projeto. Ele carrega o `~/.claude/CLAUDE.md` (com o
+`RTK.md`) e o `CLAUDE.md` do projeto. Os hooks do `~/.claude/settings.json` ficam ligados.
 
-### Quem faz o quê, e com qual modelo
+**2. O pedido.** Você escreve: "quero baixar o relatório do mês em CSV".
 
-| Papel | Faz |
-|---|---|
-| **Você** | Pede, decide, responde as dúvidas, manda publicar |
-| **Sessão principal** (o melhor modelo) | Conversa, repartição do trabalho, `TASKS.md`, commit e merge, verificação final. Não escreve código |
-| **Agente que faz** | Código, testes, documentos, pesquisa. Não roda `git` |
-| **Agente que revisa** | Lê o diff e tenta derrubar. Nunca é o mesmo que fez |
+**3. O grilling.** A skill `grilling` levanta os fatos no código e monta as decisões que são suas: quais colunas? qual
+separador? Cada pergunta vem com a resposta recomendada.
 
-O modelo de cada agente é escolhido **pela dificuldade que sobra de decidir**, não pela área, e o effort nunca é `low`:
+**4. A pergunta no celular.** Você não está no PC. Antes de perguntar, o Claude roda
+`curl ... "ntfy.sh/$NTFY_TOPICO_PERGUNTA"` com só o assunto ("1 decisão: separador do CSV"). Com o painel ligado
+(`/painel`), a pergunta entra em `~/painel-da-sessao/perguntas.json` e aparece na aba **Perguntas**. Você toca na opção
+recomendada no celular; o `esperar_resposta.py` imprime `RESPOSTA {...}` e a sessão aplica.
 
-| Modelo | Quando |
-|---|---|
-| **Haiku** | Tarefa sem decisão: rodar um comando e resumir, aplicar patch já escrito, renomear |
-| **Sonnet** | O padrão: implementar e corrigir com especificação clara, revisar diff comum |
-| **Opus** | Raciocínio difícil: desenho em aberto, concorrência, causa desconhecida, segunda tentativa de algo que travou |
+**5. A tarefa registrada.** A sessão escreve a `T2` no `TASKS.md` (origem com as suas palavras, objetivo, fazer,
+evidência `arquivo:linha`, como conferir, agente sugerido) e a dúvida `D-1` no `duvidas.md` com a resposta. Se uma
+dúvida ficasse aberta, só a tarefa que depende dela esperaria.
 
-Detalhe: [docs/agentes-e-modelos.md](docs/agentes-e-modelos.md).
-
-## O que vem no repositório
+**6. Preflight e plano.** A skill `preflight` confere se já existe algo que resolva. A sessão mostra a tabela:
 
 ```
-OptimusClaude/
-├── install.py          instala tudo (claude/ vai para ~/.claude, painel/ para ~/painel-da-sessao) e checa dependências; roda em Linux, macOS, WSL e Windows
-├── install.sh          embrulho: confere o python3 e chama o install.py
-├── install.ps1         o mesmo no Windows (oferece instalar o Python pelo winget)
-├── test_install.py     testes do install.py
-├── claude/             vai para ~/.claude
-│   ├── CLAUDE.md       regras globais: o método, escrito como instrução ao Claude
-│   ├── RTK.md          instruções do rtk, importadas pelo CLAUDE.md
-│   ├── agents/         runner, searcher, editor, researcher, doc-writer (cada um com o mínimo de tools)
-│   ├── skills/         notify, painel, preflight, session-handoff, snote, commit-curto, pr-curto
-│   ├── workflows/      fazer-revisar-corrigir.js, revisao-profunda.js
-│   ├── hooks/          ler arquivo grande, só subagente edita, aviso de contexto baixo
-│   ├── commands/       /stop
-│   ├── mods/           status-bar e painel-agentes (plugins locais de interface)
-│   ├── scripts/        instalar skills, medir o custo dos plugins, busca no vault
-│   ├── statusline/     linha de status avulsa
-│   └── settings.example.json
-├── painel/             painel web local da sessão (Python, só biblioteca padrão)
-├── projeto-modelo/     para copiar para o seu projeto: CLAUDE.md, BOAS-PRATICAS.md, TASKS.md, duvidas.md,
-│                       scripts/ (bateria, mapa de testes e modo noturno), registros/, CI, skills publicar,
-│                       aplicar-migration e conferir-producao
-└── docs/               o método explicado
+| Tarefa | Dificuldade | Modelo | Effort | Por que basta |
+|---|---|---|---|---|
+| T2 rota CSV | especificada, sem acesso | sonnet | high | TDD com critério claro |
+| T2 revisão | diff comum | sonnet | medium | lê só o diff |
 ```
 
-## Instalação rápida
+Você dá o ok.
 
-**Pré-requisitos:** [Claude Code](https://docs.claude.com/en/docs/claude-code), `git`, `python3`, Node.js e
-[uv](https://docs.astral.sh/uv/). Recomendados: `gh`, `jq`, `curl`, `gitleaks`. Opcional: `semgrep`. O instalador diz o
-que falta. Lista completa em [docs/dependencias.md](docs/dependencias.md).
+**7. Branch, worktree e brief.** A sessão cria a branch `feat/relatorio-csv` a partir da `dev` atualizada e um worktree
+para o executor. O brief sai de `python3 scripts/tarefa.py T2` (só a seção da T2 e as dúvidas dela), em JSON
+minificado, e manda ler `registros/padroes.md` antes de começar.
 
-```bash
-git clone <url-do-repositorio> OptimusClaude
-cd OptimusClaude
-./install.sh --dry-run     # mostra o que faria, sem mudar nada
-./install.sh               # instala
-```
+**8. TDD com vermelho válido.** O executor (Sonnet `high`) escreve o teste primeiro e roda. O vermelho só vale se o
+teste-alvo falhar **numa asserção do comportamento pedido**: erro de import, de sintaxe, de coleta ou zero testes rodados
+não conta. Depois implementa e vê o verde. Ele devolve JSON com o comando, o código de saída, o nome do teste e o trecho
+da asserção que falhou, mais o verde, `fontes`, `confianca` e `lacunas`.
 
-**O que o `install.py` faz** (`./install.sh` só chama ele; também dá para `python3 install.py`):
+Enquanto isso, os hooks agem: se a sessão principal tentar editar o código, o `so_subagente_edita.py` nega; se alguém
+tentar ler inteiro um arquivo de código de 40 KB, o `ler_grande.py` nega e manda usar a Serena.
 
-- Copia `claude/` para `~/.claude` e `painel/` para `~/painel-da-sessao`. Se o arquivo de destino já existe e é
-  diferente, guarda o antigo em `~/.claude/backups/optimusclaude-<data>/`.
-- Se não existe `~/.claude/settings.json`, cria um a partir do exemplo (com `<placeholders>` para você trocar).
-- Checa as dependências. Instala sozinho o que tem instalador seguro (caveman por `npm`; Serena, ccc e semgrep por
-  `uv tool`), registra o MCP da Serena, os marketplaces e os plugins do Claude Code e os dois mods de interface do
-  repositório.
-- Lista no fim o que ficou para você fazer. Rodar de novo só refaz o que mudou.
+**9. A revisão.** Outro subagente lê o pedido, a entrega e o diff (sem `git`: `diff -ruN <checkout-da-dev>/<arq>
+<worktree>/<arq>`) e devolve `{veredito, problemas:[{arquivo_linha, gravidade, descricao, correcao}], conferiu, licoes}`.
+Achou um problema médio: uma célula vinda de texto de fora pode começar com `=`. Um terceiro agente corrige (teste
+primeiro) e a revisão roda de novo. No máximo 3 rodadas. As `licoes` novas vão para `registros/padroes.md`.
 
-**O que ele não faz:**
+**10. Conferir o vermelho e commitar.** A sessão principal roda o teste novo contra o código antigo (worktree destacado
+na base) e confirma que falha. Commita na branch, com a mensagem da skill `commit-curto`:
+`feat(relatorio): exporta o mês em CSV (T2)`. O `.githooks/commit-msg` confere o padrão e a ausência de autoria de IA.
 
-- Não sobrescreve um `settings.json` que já existe. Para mesclar o exemplo no seu: `./install.sh --mesclar-settings`
-  (mostra a diferença e pede confirmação; o que é seu vence).
-- Não instala o `rtk` nem o Claude Code: diz como.
-- Não traz as skills de terceiros (`caveman`, `find-skills` e outras): veja [docs/dependencias.md](docs/dependencias.md).
+**11. A bateria.** `python3 scripts/testar_como_o_ci.py`: o `o_que_testar.py` decide o que o diff liga e a bateria roda
+tudo isso, sem parar na primeira falha. Verde. O resumo vai para `registros/baterias/` e é commitado na branch
+(`chore(registros): bateria de feat/relatorio-csv`); o log comprimido fica em `~/.local/share/registros-de-garantia/`.
 
-**Outras opções:** `--so-checar` (não instala dependência nem plugin, não grava nada: só diz o que falta e quais arquivos seriam copiados),
-`--sem-plugins` (pula marketplaces e plugins), `--help`.
+**12. O merge na `dev`.** `git pull`, `git merge --no-ff feat/relatorio-csv`, `git push origin dev`. Depois:
+`gitleaks dir registros --no-banner --redact`, `python3 scripts/registros/indice.py` e o commit
+`chore(registros): índice`. A `T2` passa para `feita na dev`, entra um item em `docs/publicacao-pendente.md`, e o
+worktree e a branch são apagados.
 
-Abra uma sessão nova do Claude Code depois de instalar.
+**13. O contexto acabando.** Se a conversa passar de 70% do contexto, o `contexto_baixo.py` avisa o Claude, que fecha o
+passo, roda o `session-handoff` e sugere abrir uma sessão nova.
 
-### No Windows
+**14. A publicação.** Dias depois, você diz "publica". A skill `publicar`: junta a `main` na `dev`, roda
+`EXIGIR_TUDO=1 python3 scripts/testar_como_o_ci.py`, faz as revisões de segurança do diff e guarda cada relatório com
+`python3 scripts/registros/salvar_revisao.py <tipo> <arquivo>`, regenera o índice, abre o PR `dev → main` com título
+`chore(publicacao): AAAA-MM-DD` e corpo do template `publicacao.md` (skill `pr-curto`), espera o CI (`tudo-verde`),
+aplica as migrations se houver, cria a tag `antes-da-publicacao-*`, faz `gh pr merge --merge`, marca `testado-*` e
+confere a produção (skill `conferir-producao`).
 
-Há dois caminhos. A diferença é o painel da sessão: ele é copiado nos dois, mas a leitura de sessões usa informações
-do sistema que só o Linux oferece (`/proc`, `ps`, `ip`), então no Windows nativo parte dele pode não funcionar.
+**15. O arquivamento.** No fim, `python3 scripts/arquivar.py` move a `T2` (agora `no ar`) para `docs/tarefas-feitas.md`
+e a `D-1` respondida para `docs/duvidas-resolvidas.md`. O `docs/publicacao-pendente.md` recomeça vazio.
 
-| | Windows nativo (`install.ps1`) | WSL (`install.sh`) |
+## Quem decide o quê
+
+O Claude não precisa de você para tudo, mas também não decide tudo sozinho. A regra fica no `duvidas.md` do projeto
+modelo.
+
+| Tipo de decisão | Quem decide | Como |
 |---|---|---|
-| Regras, agentes, skills, workflows, mods | sim | sim |
-| Linha de status (contexto, limites, branch) | sim, a avulsa | sim, a do painel |
-| Painel da sessão e perguntas pelo celular | sim, com aviso: a leitura de sessões depende de `/proc`, `ps` e `ip` | sim |
-| Quando escolher | Você usa o Claude Code direto no Windows e não precisa do painel | Você quer o kit completo |
+| **Simples** (como implementar, onde pôr o código, como dividir o pedido, qual agente usar) | O Claude, sozinho | Anota o porquê na tarefa do `TASKS.md`, para você conferir depois |
+| **Se ficou pronto** | Os testes e o agente revisor | Nem você nem a IA "achando" que terminou |
+| **Difícil** (escolha de desenho importante) | Um conselho de modelos (skill `llm-council`), e você confirma | Entra no `duvidas.md` como "decidido pelo conselho, para confirmar" |
+| **Permissão** (publicar, mexer em produção, apagar algo) | Sempre você | Nada disso acontece sem o seu OK |
+| **O que só você sabe** (regra de negócio, prioridade, opções que mudam o produto) | Você | Vai para o `duvidas.md` com as opções e uma recomendação |
+| **As decisões em aberto de cada pedido** | Você, numa entrevista | Todo pedido novo começa pela skill `grilling` (ou você chama `/grill-me`): o Claude pergunta em rodadas, sempre com a resposta que recomenda, até não sobrar decisão suposta. Pedido sem decisão sua (rodar testes, corrigir um typo) passa direto |
 
-**Windows nativo.** Abra o PowerShell na pasta do repositório:
+Uma pergunta para você não para o trabalho todo: só a tarefa que depende dela fica esperando, e o resto segue. Pergunta
+urgente chega no celular (ntfy) e pode ser respondida pela aba Perguntas do painel. As outras você resolve de uma vez
+quando voltar.
 
-```powershell
-git clone <url-do-repositorio> OptimusClaude
-cd OptimusClaude
-powershell -ExecutionPolicy Bypass -File .\install.ps1 --dry-run # mostra o que faria, sem mudar nada
-powershell -ExecutionPolicy Bypass -File .\install.ps1           # instala
-```
-
-Ele chama o mesmo `install.py`, com estas diferenças no Windows:
-
-- copia `claude\` para `%USERPROFILE%\.claude` e o painel para `%USERPROFILE%\painel-da-sessao`, com um aviso: a leitura de sessões do painel usa `/proc`, `ps` e `ip`, então parte dele só funciona no Linux;
-- se criar o `settings.json`, aponta a linha de status para a avulsa (`~\.claude\statusline\statusline.py`) e chama o
-  Python de `python`;
-- para o que falta (git, node, uv e outros), só sugere o comando do `winget`, sem instalar (`winget install Git.Git`, `astral-sh.uv`, `GitHub.cli` e outros).
-
-O `-ExecutionPolicy Bypass` libera só esta execução, porque o Windows bloqueia scripts baixados por padrão. Opções (as mesmas do `install.sh`):
-`--dry-run`, `--so-checar` (só confere e não grava nada), `--sem-plugins` e `--mesclar-settings`. O Claude Code no Windows usa o Git Bash, que
-vem junto com o Git for Windows.
-
-**WSL (kit completo).** O WSL roda um Linux de verdade dentro do Windows. É o caminho recomendado se você quer o painel.
-
-1. No PowerShell como administrador: `wsl --install` (instala o Ubuntu) e reinicie.
-2. Abra o Ubuntu pelo menu Iniciar e instale o Claude Code e as dependências dentro dele.
-3. Clone o repositório **dentro do Linux** (em `~`, não em `/mnt/c/...`, que é bem mais lento) e rode `./install.sh`.
-4. O painel abre no navegador do Windows em `http://127.0.0.1:8765`: o WSL repassa a porta sozinho.
-
-O `install.py` tem testes automáticos (`python3 -m unittest test_install`: cópia, backup, `--dry-run`, `--so-checar`,
-mescla do `settings.json`). Os embrulhos e o caminho Windows ainda não foram testados num Windows de verdade: se algo
-falhar, abra uma issue com a saída.
-
-### Abrir o painel
-
-Dentro do Claude Code, na pasta do seu projeto:
-
-```
-/painel
-```
-
-Ele sobe o servidor local e mostra o endereço no PC (`http://127.0.0.1:8765`) e o link com chave para abrir no celular,
-na mesma rede. Detalhes em [painel/README.md](painel/README.md).
-
-### Aviso no celular (ntfy)
-
-1. Instale o app [ntfy](https://ntfy.sh) no celular.
-2. No `env` do `~/.claude/settings.json`, defina `NTFY_TOPICO` (avisos gerais) e `NTFY_TOPICO_PERGUNTA` (aviso antes de
-   uma pergunta que trava o trabalho). Assine os dois tópicos no app.
-3. **O tópico é público pelo nome.** Quem souber o nome lê as mensagens. Use um sufixo aleatório
-   (`python3 -c 'import secrets; print(secrets.token_hex(4))'`) e mande só o assunto curto, nunca dado de cliente,
-   senha ou código. Sem `NTFY_TOPICO_PERGUNTA`, o Claude pula o aviso e pergunta direto.
-
-## Começar um projeto
-
-```bash
-cp -r ~/caminho/para/OptimusClaude/projeto-modelo/. ~/meu-projeto/
-cd ~/meu-projeto
-git init -b main && git config core.hooksPath .githooks       # commit fora do padrão é recusado
-git add -A && git commit -m "chore: projeto a partir do modelo"
-git checkout -b dev
-python3 -I -m unittest discover -s scripts -p 'test_*.py'   # os scripts do modelo se testam
-python3 scripts/testar_como_o_ci.py                                 # a bateria, só do que mudou
-ccc init && ccc index                                        # busca semântica no código
-```
-
-Depois:
-
-1. Preencha o `CLAUDE.md` (o que o projeto é e o que **não** é) e ajuste o `BOAS-PRATICAS.md`.
-2. Acrescente as verificações da sua linguagem em `scripts/o_que_testar.py` ([docs/linguagens.md](docs/linguagens.md)).
-   Máquina e CI usam o mesmo mapa.
-3. No GitHub, proteja a `main` (só por PR, check `tudo-verde` obrigatório, sem bypass para administrador) e fixe as
-   actions do `.github/workflows/testes.yml` por SHA.
-4. Apague as tarefas de exemplo do `TASKS.md` e do `duvidas.md`.
-
-### O primeiro ciclo, na prática
-
-1. Você escreve: "preciso baixar o relatório do mês em CSV". A sessão registra a `T1` no `TASKS.md` com as suas
-   palavras, o que fazer e como conferir.
-2. Ela mostra a tabela tarefa, dificuldade, modelo e effort. Você dá o ok.
-3. Cria a branch `feat/relatorio-csv` a partir da `dev`. Um agente escreve o teste, vê falhar, implementa e vê passar.
-4. Outro agente revisa o diff e devolve os problemas. Um terceiro corrige o que for alto ou médio.
-5. A sessão principal roda o teste novo contra o código antigo (tem de falhar), commita, roda
-   `python3 scripts/testar_como_o_ci.py` e, estando verde, faz `merge --no-ff` na `dev` e push.
-6. `TASKS.md` e `registros/` ficam em dia. A `T1` passa para "feita na dev". Nada foi para produção: isso só acontece
-   quando você pedir para publicar.
-
-### Modo noturno
+## Modo noturno
 
 Deixa a fila andando enquanto você dorme. Na raiz do projeto, na `dev` atualizada e sem mudança pendente:
 
@@ -401,48 +596,54 @@ Deixa a fila andando enquanto você dorme. Na raiz do projeto, na `dev` atualiza
 python3 scripts/noite.py
 ```
 
-- Cada tarefa roda numa **sessão nova do Claude** (contexto limpo), com `--dangerously-skip-permissions`: nada pede
-  confirmação. Pega a primeira `Tn` `aprovada` do `TASKS.md` que não tenha dúvida aberta e faz pelo fluxo de sempre
-  (worktree, TDD por subagente, revisão, correção até 3 rodadas, bateria).
-- Verde: junta na `dev` **local**, sem push. Não ficou verde ou precisa de você: vai para o `duvidas.md` e a fila segue.
-- **Sem limite de tarefas nem de horas:** para quando a fila esvazia, quando a mesma tarefa volta duas vezes seguidas ou
-  depois de 3 falhas seguidas do `claude`.
-- Uma guarda que só vale à noite (`noite_guarda.py`, passada por `--settings`) nega `git push`, PR, tocar na `main`,
-  `reset --hard` e apagar branch à força. Os hooks do seu `~/.claude` continuam valendo.
-- No fim chega o resumo no celular (`NTFY_TOPICO`). Log em `.noite/AAAA-MM-DD.log`. De manhã você confere a `dev` e
-  decide o push.
-- Agendar (opcional), com um timer do systemd do usuário: um `.service` com `WorkingDirectory=<projeto>` e
+- **O laço:** cada tarefa roda numa **sessão nova do Claude** (`claude -p`, contexto limpo), com
+  `--dangerously-skip-permissions`: nada pede confirmação. Pega a primeira `Tn` `aprovada` do `TASKS.md`, de cima para
+  baixo, que não tenha dúvida aberta, e faz pelo fluxo de sempre (brief pelo `tarefa.py`, worktree, TDD por subagente,
+  revisão, correção até 3 rodadas, bateria). Não usa o grilling: não há a quem perguntar.
+- **Verde:** junta na `dev` **local**, sem push, roda o `arquivar.py` e commita os arquivos de estado, para a `dev`
+  terminar limpa. Não ficou verde ou precisa de você: vai para o `duvidas.md`, estado `travada (noite)`, e a fila segue.
+- **Quando para:** sem limite de tarefas nem de horas. Para quando a fila esvazia, quando a mesma tarefa volta duas vezes
+  seguidas ou depois de 3 falhas seguidas do `claude`. Recusa começar fora da `dev` ou com mudança não commitada.
+- **A guarda:** `scripts/noite_guarda.py`, um hook passado por `--settings` que só vale à noite, nega `git push`,
+  `gh pr create`/`merge`, merge ou rebase com a `main`, ir para a `main`, `reset --hard` e apagar branch remota. Qualquer
+  erro de leitura: nega. Os hooks do seu `~/.claude` continuam valendo.
+- **De manhã:** chega o resumo no celular (`NTFY_TOPICO`). Log em `.noite/AAAA-MM-DD.log`. Você confere a `dev` e decide
+  o push.
+- **Configurar:** `NOITE_MODELO=opus` (modelo da sessão orquestradora), `NOITE_PROMPT=<arquivo>` (prompt próprio no
+  lugar do padrão).
+- **Agendar (opcional),** com um timer do systemd do usuário: um `.service` com `WorkingDirectory=<projeto>` e
   `ExecStart=python3 <projeto>/scripts/noite.py`, e um `.timer` com `OnCalendar=*-*-* 23:30`.
 - Só Python (Linux, WSL e Windows); precisa do `claude` no PATH.
-
-## Linguagens e ferramentas
-
-O fluxo não depende de linguagem. Depende de cada uma ter um executor de teste, um linter e (quando existe) um
-verificador de tipos que rodem por linha de comando.
-
-| Linguagem | Teste | Lint e tipos |
-|---|---|---|
-| Python | `pytest` | `ruff`, `mypy` ou `pyright` |
-| TypeScript e JavaScript | `vitest`, Playwright (tela) | `eslint`, `tsc` |
-| SQL e PostgreSQL | testes em transação que se desfaz | verificador do banco |
-| Bash | `bats` ou teste em Python | `shellcheck` |
-| PowerShell, Deno, Docker, GitHub Actions | `Pester`, `deno test`, build da imagem | `PSScriptAnalyzer`, `deno lint`, `hadolint`, `actionlint` |
-| Go, Rust, Java, C#, Ruby, PHP | exemplos de linha para o mapa | ver o doc |
-
-Tabela completa e como acrescentar outra: [docs/linguagens.md](docs/linguagens.md).
 
 ## Economia de tokens
 
 Tudo o que entra na conversa é relido a cada resposta. A regra: **o que é bruto fica fora do contexto; entra só a
 resposta.**
 
-| Ferramenta | O que faz |
+| Ferramenta | O que corta |
 |---|---|
-| **rtk** | Proxy de shell, por hook: filtra a saída de `git`, testes, `grep` e outros |
-| **caveman** | Respostas curtas e encolhimento de saída grande |
-| **context-mode** | Processa saída grande num sandbox e devolve só o resultado |
+| **rtk** | Proxy de shell, por hook: filtra a saída de `git`, testes, `grep`, `ls` e outros. `rtk gain` mostra a economia |
+| **caveman** | Respostas curtas e encolhimento de saída grande (`caveman tools shrink -- <cmd>`) |
+| **context-mode** | Processa saída grande num sandbox e devolve só o resultado (`ctx_execute`, `ctx_search`) |
 | **Serena** | Navega e edita por símbolo (definição, quem chama), sem ler o arquivo inteiro |
-| **ccc** | Busca semântica no código |
+| **ccc** | Busca semântica no código, sem varrer pasta por pasta |
+| **Subagentes** | O log do teste e a pesquisa verbosa ficam no agente; a principal recebe o veredito. Menos ferramentas por agente, menos custo fixo por spawn |
+| **`ler_grande.py`** | Impede ler inteiro um arquivo de código de 32 KB ou mais |
+| **`tarefa.py` e `arquivar.py`** | O brief não relê o `TASKS.md` inteiro, e o que já foi publicado sai dos arquivos que a sessão mais lê |
+| **`contexto_baixo.py`** | Avisa em 70% e 85% para trocar de sessão com handoff, antes de a conversa ficar cara |
+| **Bateria só do diff** | Testes e CI rodam só no que mudou; o que gasta licença (revisões por IA) roda só no diff |
+
+**O orçamento.** O `orcamento_contexto.py` soma o que entra em toda sessão antes de você digitar nada: o `CLAUDE.md`
+global e os do projeto, cada arquivo importado com `@`, as primeiras 200 linhas do `MEMORY.md` da memória automática e o
+nome e a descrição de cada skill. Mostra os maiores primeiro e avisa acima do limite (padrão 10.000 tokens). O
+`install.py` roda no fim da instalação. À mão:
+
+```bash
+python3 ~/.claude/scripts/orcamento_contexto.py [pasta-do-projeto] [--limite 10000]
+```
+
+O custo dos plugins ligados fica de fora: veja com `python3 ~/.claude/scripts/plugin_audit.py`. A estimativa (1 token a
+cada ~3,5 caracteres) serve para comparar, não para cobrar.
 
 Mais: [docs/economia-de-tokens.md](docs/economia-de-tokens.md).
 
@@ -456,6 +657,8 @@ Mais: [docs/economia-de-tokens.md](docs/economia-de-tokens.md).
 - Antes de publicar, revisões de segurança do diff (`/security-review`, Claude Security, `semgrep`,
   `insecure-defaults`). Achado confirmado bloqueia a publicação.
 - `main` protegida: só entra por PR, com CI verde, sem contornar a proteção.
+- O `settings.example.json` nega ler `.env`, `~/.ssh` e as credenciais do Claude; o `salvar_revisao.py` recusa relatório
+  com segredo ou dado pessoal; o modo noturno roda com uma guarda que impede qualquer coisa sair da máquina.
 
 **O que não garante:**
 
@@ -465,38 +668,22 @@ Mais: [docs/economia-de-tokens.md](docs/economia-de-tokens.md).
 - O painel é HTTP sem TLS: use em rede local de confiança.
 - O tópico do ntfy é público pelo nome.
 
-Detalhes: [docs/seguranca.md](docs/seguranca.md).
-
-## Documentação
-
-| Documento | Do que trata |
-|---|---|
-| [Fluxo de trabalho](docs/fluxo-de-trabalho.md) | Do pedido à produção: tarefas, branches, worktrees, fazer-revisar-corrigir, bateria, publicação |
-| [Agentes e modelos](docs/agentes-e-modelos.md) | Quem faz o quê; modelo e effort pela dificuldade; tipos de agente; brief em JSON |
-| [Economia de tokens](docs/economia-de-tokens.md) | rtk, caveman, context-mode, Serena, ccc e os hábitos de leitura |
-| [Testes e qualidade](docs/testes-e-qualidade.md) | TDD (inclusive SQL), testar como o CI pelo diff, telas, registros de garantia |
-| [Segurança](docs/seguranca.md) | Segredos, menor privilégio, IA como usuário não confiável, dado pessoal, `main` protegida |
-| [Arquitetura](docs/arquitetura.md) | Monorepo, fonte única, migrations, fila no Postgres, idempotência |
-| [Estilo](docs/estilo.md) | Commits convencionais, sem coautoria de IA, nomes, mudanças pequenas |
-| [Linguagens](docs/linguagens.md) | Ferramentas por linguagem e como acrescentar outra |
-| [Dependências](docs/dependencias.md) | Tudo o que o método usa, de onde vem e como instalar |
-| [Painel](painel/README.md) | O painel da sessão, a aba Perguntas e a configuração |
-| [Mods](claude/mods/README.md) | Plugins locais de interface (linha de status e painel de agentes) |
+Como relatar uma vulnerabilidade: [SECURITY.md](SECURITY.md). As regras em detalhe: [docs/seguranca.md](docs/seguranca.md).
 
 ## FAQ
 
-**Funciona sem o painel?** O método não depende dele. Sem o painel você perde a visão da sessão e a aba Perguntas;
-a skill `notify` e o `duvidas.md` continuam valendo. O `settings.example.json` aponta a linha de status para a do
-painel; para usar a avulsa, veja [docs/dependencias.md](docs/dependencias.md). Não foi testado rodar o fluxo inteiro
-sem o painel instalado.
+**Funciona sem o painel?** O método não depende dele. Sem o painel você perde a visão da sessão, a aba Perguntas e o
+aviso de contexto baixo (o `contexto_baixo.py` lê a statusline do painel); a skill `notify` e o `duvidas.md` continuam
+valendo. O `settings.example.json` aponta a linha de status para a do painel; para usar a avulsa, veja
+[docs/dependencias.md](docs/dependencias.md). Não foi testado rodar o fluxo inteiro sem o painel instalado.
 
-**Funciona sem os plugins?** O `install.sh --sem-plugins` pula a instalação deles. Mas o `superpowers` (TDD, verificação
-antes de concluir, depuração) é tratado como obrigatório em [docs/dependencias.md](docs/dependencias.md), e as regras
-do `CLAUDE.md` contam com ele. Não foi testado sem eles.
+**Funciona sem os plugins?** O `python3 install.py --sem-plugins` pula a instalação deles. Mas o `superpowers` (TDD,
+verificação antes de concluir, depuração) é tratado como obrigatório em [docs/dependencias.md](docs/dependencias.md), e
+as regras do `CLAUDE.md` contam com ele. Não foi testado sem eles.
 
-**Funciona no Windows ou no macOS?** No Windows, sim: o `install.ps1` instala tudo (parte do painel exige Linux), e pelo WSL o
-`install.sh` instala o kit completo (veja [No Windows](#no-windows)). O método foi escrito e usado em Linux; o
-instalador no Windows ainda não foi testado num Windows de verdade, e o macOS não foi testado.
+**Funciona no Windows ou no macOS?** No Windows, sim: o `install.ps1` instala tudo (parte do painel exige Linux), e pelo
+WSL o `install.sh` instala o kit completo (veja [docs/instalacao.md](docs/instalacao.md#no-windows)). O método foi escrito
+e usado em Linux; o instalador no Windows ainda não foi testado num Windows de verdade, e o macOS não foi testado.
 
 **Funciona com outro modelo que não seja da Anthropic?** Não. O método é feito para o Claude Code e para a escolha entre
 Haiku, Sonnet e Opus. Outros modelos e outras ferramentas não foram testados.
@@ -508,6 +695,53 @@ licença, e os workflows multiagente gastam bem mais que agentes comuns (o próp
 
 **Posso adotar só uma parte?** Dá para copiar só o `claude/CLAUDE.md`, os agentes ou o `projeto-modelo/`. Adotar partes
 isoladas não foi testado; as regras se referem umas às outras.
+
+**O instalador mexe nas minhas configurações?** Copia arquivos para `~/.claude` e `~/painel-da-sessao`, com backup do
+que for diferente em `~/.claude/backups/`. O seu `settings.json` só muda com `--mesclar-settings`, depois de você ver o
+diff e responder `s`. Para ver tudo antes: `python3 install.py --dry-run`.
+
+**Como desfaço a instalação?** Não há desinstalador. Os arquivos substituídos estão em
+`~/.claude/backups/optimusclaude-<data>/`, com o mesmo caminho relativo; os plugins saem com os comandos do próprio
+Claude Code.
+
+## Documentação
+
+| Documento | Do que trata |
+|---|---|
+| [Instalação](docs/instalacao.md) | O que o instalador faz passo a passo, opções, Windows, WSL e o aviso no celular (ntfy) |
+| [Começar um projeto](docs/comecar-um-projeto.md) | Copiar o projeto modelo, o que ajustar e o primeiro ciclo |
+| [Fluxo de trabalho](docs/fluxo-de-trabalho.md) | Do pedido à produção: tarefas, branches, worktrees, fazer-revisar-corrigir, bateria, publicação |
+| [Agentes e modelos](docs/agentes-e-modelos.md) | Quem faz o quê; modelo e effort pela dificuldade; tipos de agente; brief em JSON |
+| [Economia de tokens](docs/economia-de-tokens.md) | rtk, caveman, context-mode, Serena, ccc e os hábitos de leitura |
+| [Testes e qualidade](docs/testes-e-qualidade.md) | TDD (inclusive SQL), testar como o CI pelo diff, telas, limite de memória, registros de garantia |
+| [Segurança](docs/seguranca.md) | Segredos, menor privilégio, IA como usuário não confiável, dado pessoal, `main` protegida |
+| [Arquitetura](docs/arquitetura.md) | Monorepo, fonte única, migrations, fila no Postgres, idempotência |
+| [Estilo](docs/estilo.md) | Commits convencionais, sem coautoria de IA, nomes, mudanças pequenas |
+| [Linguagens](docs/linguagens.md) | Ferramentas por linguagem e como acrescentar outra |
+| [Dependências](docs/dependencias.md) | Tudo o que o método usa, de onde vem e como instalar |
+| [Painel](painel/README.md) | O painel da sessão, a aba Perguntas e a configuração |
+| [Mods](claude/mods/README.md) | Plugins locais de interface (linha de status e painel de agentes) |
+| [Registros](projeto-modelo/registros/README.md) | Os registros de garantia e como provar que um log é aquele |
+
+## Contribuir
+
+Issues e pull requests são bem-vindos. Mudança pequena e com teste, texto em português do Brasil, commits no formato
+`tipo(escopo): descrição`. Antes, leia:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): como preparar a mudança e rodar os testes de cada parte.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): código de conduta.
+- [SUPPORT.md](SUPPORT.md): onde pedir ajuda.
+- [CHANGELOG.md](CHANGELOG.md): o que mudou em cada versão.
+
+Os testes de cada parte:
+
+```bash
+python3 -m unittest test_install                                              # instalador
+python3 -m unittest discover -s claude/hooks                                  # hooks
+python3 -m unittest discover -s claude/scripts                                # scripts de apoio
+cd painel && python3 testar.py                                                # painel (--tudo roda todos)
+cd projeto-modelo && python3 -I -m unittest discover -s scripts -p 'test_*.py'   # projeto modelo
+```
 
 ## Créditos
 
@@ -529,26 +763,7 @@ Este repositório é cola e método. O trabalho pesado é de projetos de terceir
 
 Lista completa, fontes e como instalar cada uma: [docs/dependencias.md](docs/dependencias.md).
 
-## Contribuir
-
-Issues e pull requests são bem-vindos. Mudança pequena e com teste; o painel tem testes
-(`python3 testar.py` dentro de `painel/` roda só os ligados ao que mudou; `--tudo` roda todos). Texto em português do Brasil, commits no formato
-`tipo(escopo): descrição`.
-
 ## Licença
 
 [MIT](LICENSE): use, copie, modifique e distribua à vontade, mantendo o aviso de copyright. Sem garantia. As
 ferramentas de terceiros listadas acima têm as licenças delas.
-
----
-
-## In English
-
-OptimusClaude is a working method for software development with Claude Code, shipped as an installable kit. The main
-session only orchestrates; subagents do the work, each with the model and effort its difficulty calls for. Every change
-goes through TDD (the test must fail first), an independent diff review and a fix round, and tests run locally, only on
-what the diff touches. Test, review and fix runs are logged as verifiable records, and nothing reaches `main` without an
-explicit request. The kit includes global rules, agents, skills, workflows, a local session dashboard with phone access,
-and a project template with CI. Install with `./install.sh --dry-run`, then `./install.sh` (on Windows,
-use `install.ps1`; both are thin wrappers around the cross-platform `install.py`, and WSL gives the full dashboard). Docs and instructions are in
-Brazilian Portuguese. Linux is the tested platform. Licensed under [MIT](LICENSE).

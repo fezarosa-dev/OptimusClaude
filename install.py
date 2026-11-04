@@ -7,12 +7,13 @@ Depois checa (e instala, quando há instalador seguro) as dependências e os plu
 Idempotente: rodar de novo só copia o que mudou. Não copia settings.example.json como settings.json,
 test_*.py, *.pyc nem __pycache__.
 
-Uso: python3 install.py [--dry-run] [--so-checar] [--sem-plugins] [--mesclar-settings]
+Uso: python3 install.py [--dry-run] [--so-checar] [--sem-plugins] [--sem-skills] [--mesclar-settings]
      (./install.sh e install.ps1 só conferem o Python e chamam este arquivo)
   --dry-run           mostra o que faria, sem mudar nada
   --so-checar         não grava nada (nem cópia, nem backup, nem settings, nem instalação): só confere e
                       lista o que falta e os arquivos que seriam copiados
   --sem-plugins       pula marketplaces e plugins do Claude Code
+  --sem-skills        pula as skills de terceiros (grill-me, find-skills, playwright-cli, segurança...)
   --mesclar-settings  mescla settings.example.json no ~/.claude/settings.json existente (objetos mesclados,
                       arrays juntados sem duplicata e sem reordenar (os do usuário primeiro), escalar do
                       usuário vence; mostra o diff e pede confirmação)
@@ -38,6 +39,11 @@ PLUGINS = ["superpowers@claude-plugins-official", "claude-code-setup@claude-plug
            "watermarks-remover@watermarks-remover", "brag@brag"]
 MODS_MP = "optimus-mods"
 MODS_PLUGINS = ["status-bar@" + MODS_MP, "painel-agentes@" + MODS_MP]
+# skills de terceiros que o método usa (nome, origem para `npx skills add`); detalhes em docs/dependencias.md
+SKILLS = [("grill-me", "mattpocock/skills@grill-me"), ("grilling", "mattpocock/skills@grilling"),
+          ("find-skills", "vercel-labs/skills@find-skills"), ("playwright-cli", "microsoft/playwright-cli@playwright-cli"),
+          ("security-and-hardening", "addyosmani/agent-skills@security-and-hardening"),
+          ("security-threat-model", "openai/skills@security-threat-model"), ("semgrep", "semgrep/skills@semgrep")]
 MCP_SERENA = ["mcp", "add", "-s", "user", "serena", "--", "serena", "start-mcp-server",
               "--context", "claude-code", "--project-from-cwd"]
 SO_NOME = ("windows" if os.name == "nt" else "mac" if sys.platform == "darwin" else "linux")
@@ -356,6 +362,20 @@ class Instalador:
             for p in MODS_PLUGINS:
                 self.plugin(ja_pl, p)
 
+    def skills(self):
+        if self.a.sem_skills:
+            return
+        self.say("== Skills de terceiros (npx skills add)")
+        for nome, origem in SKILLS:
+            if (self.claude_dir / "skills" / nome).exists():
+                self.say(f"  ok       skill {nome}")
+                continue
+            cmd = ["npx", "-y", "skills", "add", origem, "-g", "-y"]
+            if not self.tem("npx") and not self.dry:
+                self.anotar(f"skill {nome}: " + " ".join(cmd))
+                continue
+            self.tentar(cmd, f"skill {nome}: " + " ".join(cmd), f"  instalada skill {nome}")
+
     def resumo(self):
         self.say("")
         if not self.falta:
@@ -365,7 +385,7 @@ class Instalador:
             for f in self.falta:
                 self.say(f"  - {f}")
             self.say("Rode python3 install.py de novo depois: o que já está certo é pulado.")
-        self.say("Skills de terceiros (caveman, find-skills etc.) não vêm neste repositório: veja docs/dependencias.md.")
+        self.say("Skills e plugins de terceiros vêm das fontes deles, não deste repositório: veja docs/dependencias.md.")
 
     def mostrar_orcamento(self):
         for base in ((self.raiz / "claude") if self.dry else self.claude_dir, self.raiz / "claude"):
@@ -389,6 +409,7 @@ class Instalador:
         self.settings()
         self.dependencias()
         self.claude()
+        self.skills()
         self.resumo()
         if self.orcamento:
             self.mostrar_orcamento()
@@ -400,7 +421,7 @@ def main(argv=None, **kw):
         print(f"Python {sys.version_info[0]}.{sys.version_info[1]} é antigo: o install.py precisa do 3.9 ou mais novo.", file=sys.stderr)
         return 1
     p = argparse.ArgumentParser(prog="install.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    for f in ("--dry-run", "--so-checar", "--sem-plugins", "--mesclar-settings"):
+    for f in ("--dry-run", "--so-checar", "--sem-plugins", "--sem-skills", "--mesclar-settings"):
         p.add_argument(f, action="store_true")
     try:
         args = p.parse_args(argv)

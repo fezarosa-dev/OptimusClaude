@@ -1,0 +1,59 @@
+name: Bug
+description: Algo no kit não funciona como deveria
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu
+      description: Descreva o problema em poucas frases.
+    validations:
+      required: true
+  - type: textarea
+    id: esperava
+    attributes:
+      label: O que você esperava
+    validations:
+      required: true
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Como reproduzir
+      description: Passos e comandos, na ordem.
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: sistema
+    attributes:
+      label: Sistema
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - WSL
+    validations:
+      required: true
+  - type: input
+    id: claude
+    attributes:
+      label: Versão do Claude Code
+      description: Saída de `claude --version`.
+    validations:
+      required: true
+  - type: textarea
+    id: checar
+    attributes:
+      label: Saída de `python3 install.py --so-checar` (opcional)
+      description: Tire nomes de usuário, caminhos pessoais e qualquer dado pessoal antes de colar.
+      render: text
+  - type: checkboxes
+    id: duplicada
+    attributes:
+      label: Antes de enviar
+      options:
+        - label: Procurei uma issue igual e não encontrei.
+          required: true

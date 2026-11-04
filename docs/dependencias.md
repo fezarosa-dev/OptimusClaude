@@ -70,19 +70,23 @@ Variáveis de ambiente (no `env` do `settings.json`): `NTFY_TOPICO` (avisos gera
 
 ## Skills de terceiros (não vêm neste repositório)
 
-Instale pela fonte de cada uma. Para pacotes de skills soltas (sem marketplace), `python3 ~/.claude/scripts/install_skills.py <dono/repo>` clona e liga em `~/.claude/skills`; para buscar, a skill `find-skills` (`npx skills find <assunto>`).
+O `install.py` instala com `npx skills add` as skills que o método usa sempre: `grill-me`, `grilling`, `find-skills`, `playwright-cli`, `security-and-hardening`, `security-threat-model` e `semgrep` (pule com `--sem-skills`). As outras da tabela são opcionais: instale pela fonte de cada uma. Para pacotes de skills soltas (sem marketplace), `python3 ~/.claude/scripts/install_skills.py <dono/repo>` clona e liga em `~/.claude/skills`; para buscar, a skill `find-skills` (`npx skills find <assunto>`).
 
 | Skill(s) | Fonte | Uso no fluxo | |
 |---|---|---|---|
 | `caveman`, `ultracave`, `megacave`, `caveman-*`, `investigate-first`, `lean-build`, `migration`, `safe-refactor`, `surgical-patch`, `verify-and-stop` | pacote do caveman (`@caveman-ai/cli`: `caveman skills install`) | Respostas terse; disciplinas de investigar antes, patch cirúrgico, refatoração segura, verificar e parar | obrigatória (`caveman`) |
 | `ccc` | cocoindex-code | Como usar a busca semântica | obrigatória |
-| `find-skills` | ecossistema `skills` (`npx skills`) | Achar skill que cubra a tarefa | recomendada |
+| `find-skills` | `vercel-labs/skills` (`npx skills add vercel-labs/skills@find-skills -g -y`) | Achar skill que cubra a tarefa | recomendada |
+| `playwright-cli` | `microsoft/playwright-cli` | Testes de tela e automação do navegador | recomendada (projeto com tela) |
+| `security-and-hardening` | `addyosmani/agent-skills` | Endurecer o que a rodada de segurança achar | recomendada |
+| `security-threat-model` | `openai/skills` | Modelo de ameaças ao mexer em autenticação, permissão ou dado pessoal | recomendada |
+| `plugin-authoring`, `workflow-authoring`, `security-review` | vêm com o Claude Code | Mods, workflows de vários agentes, revisão de segurança do diff | já vêm |
 | `grill-me` e `grilling` | [mattpocock/skills](https://github.com/mattpocock/skills): `npx skills add mattpocock/skills@grill-me -g -y` e `npx skills add mattpocock/skills@grilling -g -y` (o `grill-me` só chama o `grilling`, por isso as duas) | Entrevistar você sobre um pedido vago ou um plano com decisões em aberto, até não sobrar nada suposto | obrigatória |
 | `test-driven-development`, `verification-before-completion` e demais de processo | plugin `superpowers` (acima) | TDD e verificação antes de declarar pronto | obrigatória |
 | `code-ultrareview` | coroboros (MIT) | Revisão do diff em oito eixos | opcional |
 | `firecrawl*` | https://github.com/firecrawl/skills e `firecrawl/firecrawl-workflows` | Pesquisa e extração da web | opcional |
 | `llm-council` | skill pública "LLM Council" (cinco conselheiros + revisão anônima) | Decisão difícil sem perguntar ao usuário | opcional |
-| `semgrep` | Semgrep | Regras e varredura estática | opcional |
+| `semgrep` | `semgrep/skills` | Regras e varredura estática (a skill; o binário `semgrep` é outra linha) | recomendada |
 | `humanizer-pt-br` | mackswendhell (MIT) | Tirar cara de IA de texto em português | opcional |
 | `seo` | `addyosmani/web-quality-skills` | Qualidade web | opcional |
 
