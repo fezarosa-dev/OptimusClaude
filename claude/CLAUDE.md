@@ -48,6 +48,7 @@ Estas regras valem para todo projeto. O `CLAUDE.md` de cada projeto manda no dom
 # TDD em todo código
 
 - Todo código novo ou corrigido segue TDD: escrever o teste primeiro, rodar e vê-lo **falhar** pelo motivo certo, implementar, vê-lo **passar**. Vale para a sessão principal e para os agentes: o brief exige, e o retorno traz a saída do vermelho e do verde.
+- **Vermelho válido:** o teste-alvo tem de falhar numa asserção do comportamento pedido. Erro de import, de sintaxe, de coleta, de fixture ou zero testes rodados não é vermelho. O retorno do agente traz comando, código de saída, nome do teste-alvo e o trecho da asserção que falhou; o revisor reprova vermelho inválido.
 - Antes de commitar, a sessão principal confere o vermelho quando der: roda o teste novo contra o código antigo (worktree destacado na base) e confirma que falha.
 - SQL: o teste falha sem a migration (`begin; <teste>; rollback`) e passa com ela (`begin; <migration>; <teste>; rollback`), sempre numa transação que se desfaz sozinha.
 - Onde não há executor de teste, diga isso e descreva a verificação manual. Não adicione dependência só para testar sem perguntar.
@@ -64,6 +65,11 @@ Estas regras valem para todo projeto. O `CLAUDE.md` de cada projeto manda no dom
 - **Effort sempre definido em cada agente, nunca `low`** (derruba a qualidade): Haiku `medium`; Sonnet `high` (`medium` só para edição pequena já especificada); Opus `high`, e `xhigh`/`max` para o mais difícil ou para a segunda tentativa de algo que travou.
 - **Tipo de agente com a menor superfície de tools** que cobre a tarefa: `runner` (só Bash), `searcher` (Read/Glob/Grep), `editor` (Read/Edit), `researcher` (WebFetch/WebSearch), `doc-writer` (Read/Write, arquivo novo do zero). `general-purpose`/`Explore` só quando a tarefa precisa de várias categorias de tool. Não crie tipo "especialista" sem superfície de tools genuinamente diferente.
 - **Comunicação com subagentes em JSON minificado**, tanto o prompt quanto o formato de retorno, só com o contexto necessário para aquela subtarefa (sem histórico da conversa). O brief é o único contexto do agente: diga o objetivo, o que já foi descartado, os arquivos a ler e o escopo.
+- **Contrato de retorno:** todo agente que afirma algo sobre o código devolve `fontes` (`arquivo:linha`), `confianca` (alta, media, baixa) e `lacunas` (o que não conferiu). Retorno sem fontes volta para o agente.
+- **Regras de desvio no brief de quem implementa:** R1 bug no caminho, R2 falta algo para a correção ou a segurança, R3 algo bloqueia: resolve sozinho e lista no resumo. R4 arquitetura, dependência nova, schema ou contrato público: não faz; vai para o `duvidas.md` com opções e recomendação, e o resto da tarefa segue. Na dúvida, R4. O que estiver fora do pedido vira `Tn` nova, não código.
+- **Pacote que não instala:** nunca tentar um nome parecido ou alternativo (pacote alucinado, typosquatting). Para e vai para o `duvidas.md`.
+- **Revisor procura entrega reduzida:** "v1", "placeholder", "TODO", "por enquanto", "stub", "simplificado", valor fixo no lugar do real. Pedido ou decisão do `duvidas.md` entregue pela metade é gravidade alta (confirmado lendo, não só pela palavra).
+- **Lições:** o revisor devolve `licoes` (armadilhas e padrões deste projeto). A sessão principal junta as novas em `registros/padroes.md` (uma linha cada, sem repetir, no máximo ~60 linhas: ao passar disso, consolida as parecidas e corta as velhas que não se repetiram), e todo brief de implementação manda ler esse arquivo antes de começar.
 - Agentes em worktree não rodam `git`: commit e integração na branch ficam com a sessão principal.
 - **Revisão do diff também vai para subagente**, diferente do que implementou: Sonnet `high`, ou Opus `high` se mexer em segurança, concorrência ou dado pessoal. Ele devolve em JSON minificado: veredito, problemas com `arquivo:linha` e o que conferiu. A principal roda ela mesma os portões objetivos (testes, lint, typecheck, saída curta), olha só o `git diff --stat` e abre apenas os trechos que o revisor apontar.
 - Lote de tarefas já especificadas com revisão e correção automáticas: workflow `fazer-revisar-corrigir` (`~/.claude/workflows`). Revisão profunda multiagente: workflow `revisao-profunda`. Workflows consomem muito: só quando pedidos ou como último recurso, avisando o custo antes.
@@ -91,7 +97,7 @@ Planejamento
 
 # Ferramentas padrão
 
-- Em toda sessão: **caveman** (respostas terse), **rtk** (proxy de bash, via hook), **context-mode** (processar saída grande fora do contexto), **Serena** (MCP, navegação e edição por símbolo) e **ccc** (cocoindex-code, busca semântica no código).
+- Em toda sessão: **caveman no nível `ultracave`** por padrão (respostas terse sem gramática; volta ao normal só com "normal mode" ou "stop caveman"; o que vai para arquivo, commit ou PR segue em texto normal), **rtk** (proxy de bash, via hook), **context-mode** (processar saída grande fora do contexto), **Serena** (MCP, navegação e edição por símbolo) e **ccc** (cocoindex-code, busca semântica no código).
 - Para navegar/editar código, prefira as tools do Serena (`find_symbol`, `find_referencing_symbols`, `replace_symbol_body` etc.) em vez de ler arquivos inteiros.
 - O que cada uma faz e como instalar: `docs/dependencias.md` do repositório desta configuração.
 

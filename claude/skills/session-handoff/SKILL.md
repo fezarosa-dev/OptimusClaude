@@ -37,6 +37,14 @@ Then output:
 ## Tests executed
 ...
 
+## What was tried and why it failed
+(The most important section: each attempt that did not work, with the root cause, so the next session does not repeat it. Write "nothing failed" if so.)
+...
+
+## Current best theory
+(For open bugs or questions: what you believe is going on and the evidence for it.)
+...
+
 ## Problems remaining
 ...
 
@@ -44,6 +52,7 @@ Then output:
 ...
 
 ## Next step
+(One concrete, executable action: the command to run or the file and change to make.)
 ...
 
 ## Suggested memory update
