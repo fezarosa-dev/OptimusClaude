@@ -7,7 +7,7 @@ Plugins locais (hooks em TypeScript) que mudam a interface. Não são dependênc
 
 ## Como ligar
 
-O `install.sh` copia esta pasta para `~/.claude/mods`, registra o marketplace local `optimus-mods` e instala os dois plugins. À mão:
+O `install.py` copia esta pasta para `~/.claude/mods`, registra o marketplace local `optimus-mods` e instala os dois plugins. À mão:
 
 ```bash
 claude plugin marketplace add ~/.claude/mods

@@ -151,8 +151,8 @@ o que a sessão está esperando. Os testes dele rodam com `python3 testar.py`, q
 | `BOAS-PRATICAS.md` | As regras de código do projeto |
 | `TASKS.md` | A fila de tarefas `Tn`, com estado de cada uma |
 | `duvidas.md` | O que espera decisão sua |
-| `scripts/testar-como-o-ci.sh` e `scripts/o_que_testar.py` | A bateria: roda na máquina o que o CI rodaria, só para o que o diff toca |
-| `scripts/noite.sh` e `scripts/noite_guarda.py` | O modo noturno: roda a fila do `TASKS.md` sozinho até esvaziar (veja [Modo noturno](#modo-noturno)) |
+| `scripts/testar_como_o_ci.py` e `scripts/o_que_testar.py` | A bateria: roda na máquina o que o CI rodaria, só para o que o diff toca |
+| `scripts/noite.py` e `scripts/noite_guarda.py` | O modo noturno: roda a fila do `TASKS.md` sozinho até esvaziar (veja [Modo noturno](#modo-noturno)) |
 | `registros/` | As provas: baterias, revisões, correções e publicações pendentes; e `padroes.md`, as lições das revisões que todo agente lê antes de implementar |
 | `.github/workflows/testes.yml` | O CI, que roda só no PR para a `main` e no push da `main` |
 | `.github/PULL_REQUEST_TEMPLATE/` | Templates de PR: `padrao`, `publicacao` (dev → main) e `correcao-urgente` |
@@ -238,8 +238,10 @@ Detalhe: [docs/agentes-e-modelos.md](docs/agentes-e-modelos.md).
 
 ```
 OptimusClaude/
-├── install.sh          instala tudo (claude/ vai para ~/.claude, painel/ para ~/painel-da-sessao) e checa dependências
-├── install.ps1         o mesmo no Windows nativo, menos o painel (que precisa de Linux; no WSL use o install.sh)
+├── install.py          instala tudo (claude/ vai para ~/.claude, painel/ para ~/painel-da-sessao) e checa dependências; roda em Linux, macOS, WSL e Windows
+├── install.sh          embrulho: confere o python3 e chama o install.py
+├── install.ps1         o mesmo no Windows (oferece instalar o Python pelo winget)
+├── test_install.py     testes do install.py
 ├── claude/             vai para ~/.claude
 │   ├── CLAUDE.md       regras globais: o método, escrito como instrução ao Claude
 │   ├── RTK.md          instruções do rtk, importadas pelo CLAUDE.md
@@ -262,7 +264,7 @@ OptimusClaude/
 ## Instalação rápida
 
 **Pré-requisitos:** [Claude Code](https://docs.claude.com/en/docs/claude-code), `git`, `python3`, Node.js e
-[uv](https://docs.astral.sh/uv/). Recomendados: `gh`, `jq`, `curl`, `gitleaks`. Opcional: `semgrep`. O `install.sh` diz o
+[uv](https://docs.astral.sh/uv/). Recomendados: `gh`, `jq`, `curl`, `gitleaks`. Opcional: `semgrep`. O instalador diz o
 que falta. Lista completa em [docs/dependencias.md](docs/dependencias.md).
 
 ```bash
@@ -272,7 +274,7 @@ cd OptimusClaude
 ./install.sh               # instala
 ```
 
-**O que o `install.sh` faz:**
+**O que o `install.py` faz** (`./install.sh` só chama ele; também dá para `python3 install.py`):
 
 - Copia `claude/` para `~/.claude` e `painel/` para `~/painel-da-sessao`. Se o arquivo de destino já existe e é
   diferente, guarda o antigo em `~/.claude/backups/optimusclaude-<data>/`.
@@ -285,7 +287,7 @@ cd OptimusClaude
 **O que ele não faz:**
 
 - Não sobrescreve um `settings.json` que já existe. Para mesclar o exemplo no seu: `./install.sh --mesclar-settings`
-  (precisa de `jq`, mostra a diferença e pede confirmação; o que é seu vence).
+  (mostra a diferença e pede confirmação; o que é seu vence).
 - Não instala o `rtk` nem o Claude Code: diz como.
 - Não traz as skills de terceiros (`caveman`, `find-skills` e outras): veja [docs/dependencias.md](docs/dependencias.md).
 
@@ -296,14 +298,14 @@ Abra uma sessão nova do Claude Code depois de instalar.
 
 ### No Windows
 
-Há dois caminhos. A diferença é só o painel da sessão, que lê informações do sistema que só o Linux oferece (`/proc`,
-`ps`, `ip`).
+Há dois caminhos. A diferença é o painel da sessão: ele é copiado nos dois, mas a leitura de sessões usa informações
+do sistema que só o Linux oferece (`/proc`, `ps`, `ip`), então no Windows nativo parte dele pode não funcionar.
 
 | | Windows nativo (`install.ps1`) | WSL (`install.sh`) |
 |---|---|---|
 | Regras, agentes, skills, workflows, mods | sim | sim |
 | Linha de status (contexto, limites, branch) | sim, a avulsa | sim, a do painel |
-| Painel da sessão e perguntas pelo celular | não | sim |
+| Painel da sessão e perguntas pelo celular | sim, com aviso: a leitura de sessões depende de `/proc`, `ps` e `ip` | sim |
 | Quando escolher | Você usa o Claude Code direto no Windows e não precisa do painel | Você quer o kit completo |
 
 **Windows nativo.** Abra o PowerShell na pasta do repositório:
@@ -311,19 +313,19 @@ Há dois caminhos. A diferença é só o painel da sessão, que lê informaçõe
 ```powershell
 git clone <url-do-repositorio> OptimusClaude
 cd OptimusClaude
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -DryRun   # mostra o que faria, sem mudar nada
+powershell -ExecutionPolicy Bypass -File .\install.ps1 --dry-run # mostra o que faria, sem mudar nada
 powershell -ExecutionPolicy Bypass -File .\install.ps1           # instala
 ```
 
-Ele faz o mesmo que o `install.sh`, com três diferenças:
+Ele chama o mesmo `install.py`, com estas diferenças no Windows:
 
-- copia `claude\` para `%USERPROFILE%\.claude` e não instala o painel;
+- copia `claude\` para `%USERPROFILE%\.claude` e o painel para `%USERPROFILE%\painel-da-sessao`, com um aviso: a leitura de sessões do painel usa `/proc`, `ps` e `ip`, então parte dele só funciona no Linux;
 - se criar o `settings.json`, aponta a linha de status para a avulsa (`~\.claude\statusline\statusline.py`) e chama o
   Python de `python`;
-- para o que falta, sugere o comando do `winget` (`winget install Git.Git`, `astral-sh.uv`, `GitHub.cli` e outros).
+- para o que falta (git, node, uv e outros), só sugere o comando do `winget`, sem instalar (`winget install Git.Git`, `astral-sh.uv`, `GitHub.cli` e outros).
 
-O `-ExecutionPolicy Bypass` libera só esta execução, porque o Windows bloqueia scripts baixados por padrão. Opções:
-`-DryRun`, `-SoChecar` (só confere e não grava nada) e `-SemPlugins`. O Claude Code no Windows usa o Git Bash, que
+O `-ExecutionPolicy Bypass` libera só esta execução, porque o Windows bloqueia scripts baixados por padrão. Opções (as mesmas do `install.sh`):
+`--dry-run`, `--so-checar` (só confere e não grava nada), `--sem-plugins` e `--mesclar-settings`. O Claude Code no Windows usa o Git Bash, que
 vem junto com o Git for Windows.
 
 **WSL (kit completo).** O WSL roda um Linux de verdade dentro do Windows. É o caminho recomendado se você quer o painel.
@@ -333,9 +335,9 @@ vem junto com o Git for Windows.
 3. Clone o repositório **dentro do Linux** (em `~`, não em `/mnt/c/...`, que é bem mais lento) e rode `./install.sh`.
 4. O painel abre no navegador do Windows em `http://127.0.0.1:8765`: o WSL repassa a porta sozinho.
 
-O instalador nativo foi testado com o PowerShell 7 no Linux (cópia, backup, `-DryRun`, `-SoChecar`, nada mudando
-na segunda rodada e a checagem de plugins igual à do `install.sh`). Ainda não foi testado num Windows de verdade: se
-algo falhar, abra uma issue com a saída.
+O `install.py` tem testes automáticos (`python3 -m unittest test_install`: cópia, backup, `--dry-run`, `--so-checar`,
+mescla do `settings.json`). Os embrulhos e o caminho Windows ainda não foram testados num Windows de verdade: se algo
+falhar, abra uma issue com a saída.
 
 ### Abrir o painel
 
@@ -366,7 +368,7 @@ git init -b main && git config core.hooksPath .githooks       # commit fora do p
 git add -A && git commit -m "chore: projeto a partir do modelo"
 git checkout -b dev
 python3 -I -m unittest discover -s scripts -p 'test_*.py'   # os scripts do modelo se testam
-scripts/testar-como-o-ci.sh                                 # a bateria, só do que mudou
+python3 scripts/testar_como_o_ci.py                                 # a bateria, só do que mudou
 ccc init && ccc index                                        # busca semântica no código
 ```
 
@@ -387,7 +389,7 @@ Depois:
 3. Cria a branch `feat/relatorio-csv` a partir da `dev`. Um agente escreve o teste, vê falhar, implementa e vê passar.
 4. Outro agente revisa o diff e devolve os problemas. Um terceiro corrige o que for alto ou médio.
 5. A sessão principal roda o teste novo contra o código antigo (tem de falhar), commita, roda
-   `scripts/testar-como-o-ci.sh` e, estando verde, faz `merge --no-ff` na `dev` e push.
+   `python3 scripts/testar_como_o_ci.py` e, estando verde, faz `merge --no-ff` na `dev` e push.
 6. `TASKS.md` e `registros/` ficam em dia. A `T1` passa para "feita na dev". Nada foi para produção: isso só acontece
    quando você pedir para publicar.
 
@@ -396,7 +398,7 @@ Depois:
 Deixa a fila andando enquanto você dorme. Na raiz do projeto, na `dev` atualizada e sem mudança pendente:
 
 ```bash
-scripts/noite.sh
+python3 scripts/noite.py
 ```
 
 - Cada tarefa roda numa **sessão nova do Claude** (contexto limpo), com `--dangerously-skip-permissions`: nada pede
@@ -410,8 +412,8 @@ scripts/noite.sh
 - No fim chega o resumo no celular (`NTFY_TOPICO`). Log em `.noite/AAAA-MM-DD.log`. De manhã você confere a `dev` e
   decide o push.
 - Agendar (opcional), com um timer do systemd do usuário: um `.service` com `WorkingDirectory=<projeto>` e
-  `ExecStart=<projeto>/scripts/noite.sh`, e um `.timer` com `OnCalendar=*-*-* 23:30`.
-- Linux e WSL. No Windows nativo, rode dentro do WSL.
+  `ExecStart=python3 <projeto>/scripts/noite.py`, e um `.timer` com `OnCalendar=*-*-* 23:30`.
+- Só Python (Linux, WSL e Windows); precisa do `claude` no PATH.
 
 ## Linguagens e ferramentas
 
@@ -492,9 +494,9 @@ sem o painel instalado.
 antes de concluir, depuração) é tratado como obrigatório em [docs/dependencias.md](docs/dependencias.md), e as regras
 do `CLAUDE.md` contam com ele. Não foi testado sem eles.
 
-**Funciona no Windows ou no macOS?** No Windows, sim: o `install.ps1` instala tudo menos o painel, e pelo WSL o
+**Funciona no Windows ou no macOS?** No Windows, sim: o `install.ps1` instala tudo (parte do painel exige Linux), e pelo WSL o
 `install.sh` instala o kit completo (veja [No Windows](#no-windows)). O método foi escrito e usado em Linux; o
-`install.ps1` ainda não foi testado num Windows de verdade, e o macOS não foi testado.
+instalador no Windows ainda não foi testado num Windows de verdade, e o macOS não foi testado.
 
 **Funciona com outro modelo que não seja da Anthropic?** Não. O método é feito para o Claude Code e para a escolha entre
 Haiku, Sonnet e Opus. Outros modelos e outras ferramentas não foram testados.
@@ -548,5 +550,5 @@ goes through TDD (the test must fail first), an independent diff review and a fi
 what the diff touches. Test, review and fix runs are logged as verifiable records, and nothing reaches `main` without an
 explicit request. The kit includes global rules, agents, skills, workflows, a local session dashboard with phone access,
 and a project template with CI. Install with `./install.sh --dry-run`, then `./install.sh` (on Windows,
-`install.ps1` installs everything except the dashboard, or use `install.sh` inside WSL for the full kit). Docs and instructions are in
+use `install.ps1`; both are thin wrappers around the cross-platform `install.py`, and WSL gives the full dashboard). Docs and instructions are in
 Brazilian Portuguese. Linux is the tested platform. Licensed under [MIT](LICENSE).
