@@ -29,8 +29,8 @@ PROMPT_PADRAO = """Modo noturno do OptimusClaude. Você está sozinho: o usuári
 1. Leia TASKS.md e duvidas.md só para escolher. Escolha a PRIMEIRA tarefa com estado `aprovada` (de cima para baixo) que não tenha dúvida aberta no duvidas.md. Se não houver nenhuma, responda só a linha: NOITE_FIM
 2. Marque a tarefa como `em andamento (noite)` no TASKS.md.
 3. Monte o brief com `python3 scripts/tarefa.py <Tn>` (só a seção da tarefa; não releia o TASKS.md inteiro). Faça a tarefa pelo fluxo do método: worktree próprio a partir da dev, implementação com TDD por subagente, revisão do diff por outro subagente, correção até 3 rodadas, bateria do que mudou (python3 scripts/testar_como_o_ci.py). Leia registros/padroes.md antes e junte nele as lições do revisor.
-4. Verde: commit na branch da tarefa (mensagem pela skill commit-curto), merge --no-ff na dev LOCAL (sem push), apague o worktree, estado `feita na dev (noite, sem push)`. Depois rode `python3 scripts/arquivar.py` no fim da tarefa.
-5. Não ficou verde depois de 3 rodadas, ou precisa de decisão do usuário: registre no duvidas.md (o que travou, onde parou, opções com recomendação), estado `travada (noite)`, deixe a branch como está e volte para a dev.
+4. Verde: commit na branch da tarefa (mensagem pela skill commit-curto), merge --no-ff na dev LOCAL (sem push), apague o worktree, estado `feita na dev (noite, sem push)`. Depois rode `python3 scripts/arquivar.py` e commite na dev o TASKS.md, o duvidas.md, docs/ e registros/ (`chore(tarefas): <Tn> feita (noite)`): a dev tem de terminar limpa, senão a próxima noite não começa.
+5. Não ficou verde depois de 3 rodadas, ou precisa de decisão do usuário: registre no duvidas.md (o que travou, onde parou, opções com recomendação), estado `travada (noite)`, deixe a branch como está, volte para a dev e commite o TASKS.md e o duvidas.md (`chore(tarefas): <Tn> travada (noite)`).
 6. Nunca: push, PR, tocar na main, reset --hard (uma guarda nega).
 Termine com UMA linha, a última da resposta: NOITE_TAREFA <Tn> <feita|travada> <resumo de uma frase>"""
 
@@ -63,13 +63,16 @@ def main():
     if os.path.isdir(".githooks"):
         git("config", "core.hooksPath", ".githooks")  # commit fora do padrão é recusado também à noite
     os.makedirs(".noite", exist_ok=True)
+    # ignora o log só nesta máquina (.git/info/exclude): mexer no .gitignore sujaria a dev e travaria a próxima noite
+    exclude = os.path.join(git("rev-parse", "--git-path", "info/exclude").stdout.strip() or ".git/info/exclude")
     try:
-        with open(".gitignore", encoding="utf-8") as f:
+        with open(exclude, encoding="utf-8") as f:
             ignorado = ".noite/" in f.read().splitlines()
     except OSError:
         ignorado = False
     if not ignorado:
-        with open(".gitignore", "a", encoding="utf-8") as f:
+        os.makedirs(os.path.dirname(exclude), exist_ok=True)
+        with open(exclude, "a", encoding="utf-8") as f:
             f.write(".noite/\n")
     log = os.path.join(".noite", time.strftime("%Y-%m-%d") + ".log")
     guarda = os.path.join(raiz, "scripts", "noite_guarda.py")
@@ -126,6 +129,13 @@ def laco(claude, config, log):
         if git("branch", "--show-current").stdout.strip() != "dev":
             git("switch", "-q", "dev")
 
+    # rede de segurança: arquivo de estado que a sessão esqueceu de commitar entra num commit, para a próxima noite
+    # começar com a dev limpa. Só esses caminhos; qualquer outra sobra fica para você ver de manhã.
+    estado = ["TASKS.md", "duvidas.md", "docs", "registros"]
+    if git("status", "--porcelain", "--", *estado).stdout.strip() and git("branch", "--show-current").stdout.strip() == "dev":
+        git("add", "--", *[c for c in estado if os.path.exists(c)])
+        if git("commit", "-m", "chore(tarefas): estado da noite").returncode == 0:
+            say("arquivos de estado esquecidos commitados na dev")
     resumo = (f"Noite: {len(feitas)} feita(s) {' '.join(feitas)} · {len(travadas)} travada(s) {' '.join(travadas)}"
               f" · fim: {motivo_fim}. Push da dev: você decide.")
     say(resumo)

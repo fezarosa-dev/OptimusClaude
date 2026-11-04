@@ -56,7 +56,8 @@ class Laco(unittest.TestCase):
         fila.write_text("\n".join(respostas) + "\n")
         falso = bin_ / "claude"
         falso.write_text(f'#!/usr/bin/env bash\nl="$(head -1 {fila})"; sed -i 1d {fila}\n'
-                         'case "$l" in ERRO) exit 1;; esac\necho "trabalhando..."; echo "$l"\n')
+                         'case "$l" in ERRO) exit 1;; SUJA*) echo "- **Estado:** feita" >> TASKS.md; echo x > solto.txt; l="${l#SUJA }";; esac\n'
+                         'echo "trabalhando..."; echo "$l"\n')
         falso.chmod(0o755)
         g = lambda *a: subprocess.run(["git", *a], cwd=repo, capture_output=True, text=True, check=True)
         g("init", "-q", "-b", "dev")
@@ -66,6 +67,7 @@ class Laco(unittest.TestCase):
         env = {**os.environ, "PATH": f"{bin_}{os.pathsep}{os.environ['PATH']}", "NTFY_TOPICO": ""}
         p = subprocess.run([sys.executable, "scripts/noite.py"], cwd=repo, capture_output=True, text=True, env=env,
                            timeout=30)
+        self.status = subprocess.run(["git", "status", "--porcelain"], cwd=repo, capture_output=True, text=True).stdout
         return p, (fila.read_text().strip())
 
     def test_roda_ate_a_fila_esvaziar_sem_limite_de_tarefas(self):
@@ -75,6 +77,16 @@ class Laco(unittest.TestCase):
         self.assertIn("12 feita(s)", p.stdout)
         self.assertIn("fila vazia", p.stdout)
         self.assertEqual(sobra, "")
+
+    def test_noite_nao_suja_a_dev(self):
+        """A noite seguinte exige a dev limpa: o .noite/ é ignorado sem mexer no .gitignore versionado."""
+        self.rodar(["NOITE_FIM"])
+        self.assertEqual(self.status, "")
+
+    def test_estado_esquecido_e_commitado_e_o_resto_fica(self):
+        """Se a sessão esquece de commitar TASKS.md, a noite commita; arquivo fora do estado não entra."""
+        self.rodar(["SUJA NOITE_TAREFA T1 feita ok", "NOITE_FIM"])
+        self.assertEqual(self.status, "?? solto.txt\n")
 
     def test_travada_conta_e_segue(self):
         p, _ = self.rodar(["NOITE_TAREFA T1 travada precisa decidir", "NOITE_TAREFA T2 feita ok", "NOITE_FIM"])
