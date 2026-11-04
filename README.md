@@ -66,6 +66,23 @@ Duas ideias atravessam tudo:
 - **O que é bruto fica fora da conversa.** Logs, saídas de teste e arquivos grandes são lidos por subagentes ou
   ferramentas que devolvem só o resumo. A conversa principal fica curta, mais barata e mais precisa.
 
+### Quem decide o quê
+
+O Claude não precisa de você para tudo, mas também não decide tudo sozinho. A regra fica no `duvidas.md` do projeto
+modelo.
+
+| Tipo de decisão | Quem decide | Como |
+|---|---|---|
+| **Simples** (como implementar, onde pôr o código, como dividir o pedido, qual agente usar) | O Claude, sozinho | Anota o porquê na tarefa do `TASKS.md`, para você conferir depois |
+| **Se ficou pronto** | Os testes e o agente revisor | Nem você nem a IA "achando" que terminou |
+| **Difícil** (escolha de desenho importante) | Um conselho de modelos (skill `llm-council`), e você confirma | Entra no `duvidas.md` como "decidido pelo conselho, para confirmar" |
+| **Permissão** (publicar, mexer em produção, apagar algo) | Sempre você | Nada disso acontece sem o seu OK |
+| **O que só você sabe** (regra de negócio, prioridade, opções que mudam o produto) | Você | Vai para o `duvidas.md` com as opções e uma recomendação |
+
+Uma pergunta para você não para o trabalho todo: só a tarefa que depende dela fica esperando, e o resto segue. Pergunta
+urgente chega no celular (ntfy) e pode ser respondida pela aba Perguntas do painel. As outras você resolve de uma vez
+quando voltar.
+
 ### Peça por peça
 
 **Regras (`claude/CLAUDE.md` e `claude/RTK.md`).** É o "manual do funcionário" do Claude: o método inteiro escrito
